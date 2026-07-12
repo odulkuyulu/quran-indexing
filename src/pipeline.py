@@ -58,7 +58,7 @@ class PipelineConfig:
     @classmethod
     def from_env(cls, surah: int, reciter: str, **overrides):
         """Create config from environment variables with overrides."""
-        return cls(
+        defaults = dict(
             surah=surah,
             reciter=reciter,
             audio_source_pattern=os.getenv(
@@ -73,8 +73,9 @@ class PipelineConfig:
             compute_device=os.getenv("COMPUTE_DEVICE", "auto"),
             confidence_threshold=float(os.getenv("CONFIDENCE_THRESHOLD", "0.85")),
             upload_to_search=bool(os.getenv("AZURE_SEARCH_ENDPOINT")),
-            **overrides
         )
+        defaults.update(overrides)
+        return cls(**defaults)
 
 
 @dataclass
