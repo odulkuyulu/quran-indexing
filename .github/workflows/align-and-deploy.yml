@@ -105,17 +105,31 @@ jobs:
           path: ~/.cache/huggingface
           key: hf-whisper-tiny-wav2vec2-arabic-v1
 
+      - name: Free up runner disk space
+        run: |
+          # Remove large pre-installed tool chains not needed for alignment
+          sudo rm -rf /usr/local/lib/android \
+                      /opt/ghc \
+                      /opt/hostedtoolcache/CodeQL \
+                      /opt/hostedtoolcache/Ruby \
+                      /opt/hostedtoolcache/go \
+                      /usr/share/dotnet \
+                      /usr/local/share/boost
+          sudo apt-get clean
+          df -h   # log available space for debugging
+
       - name: Install system packages
         run: sudo apt-get install -y --no-install-recommends ffmpeg
 
       - name: Install Python packages (CPU torch)
         run: |
           # CPU-only PyTorch — ~220 MB, avoids pulling CUDA wheels
-          pip install torch torchaudio --index-url https://download.pytorch.org/whl/cpu
-          pip install faster-whisper openai-whisper
-          pip install "whisperx @ git+https://github.com/m-bain/whisperX.git"
+          # --no-cache-dir keeps disk use to installed size only
+          pip install --no-cache-dir torch torchaudio --index-url https://download.pytorch.org/whl/cpu
+          pip install --no-cache-dir faster-whisper openai-whisper
+          pip install --no-cache-dir "whisperx @ git+https://github.com/m-bain/whisperX.git"
           # Remaining pipeline deps (excludes flask/gunicorn — not needed here)
-          pip install python-dotenv requests httpx rich tqdm \
+          pip install --no-cache-dir python-dotenv requests httpx rich tqdm \
                       arabic-reshaper python-bidi jiwer \
                       pydub librosa soundfile ffmpeg-python \
                       azure-search-documents azure-identity
