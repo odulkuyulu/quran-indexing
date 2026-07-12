@@ -4,8 +4,8 @@
   "name_english": "Al-Fatihah",
   "reciter": "mishary_alafasy",
   "qiraa": "Hafs",
-  "source_audio_url": "https://download.quranicaudio.com/qdc/mishari_al_afasy/murattal/1.mp3",
-  "audio_duration_ms": 46000,
+  "source_audio_url": "https://server8.mp3quran.net/afs/001.mp3",
+  "audio_duration_ms": 51931,
   "ayah_count": 7,
   "ayahs": [
     {
@@ -13,11 +13,11 @@
       "ayah": 1,
       "reciter": "mishary_alafasy",
       "qiraa": "Hafs",
-      "audio_url": "https://download.quranicaudio.com/qdc/mishari_al_afasy/murattal/1.mp3",
+      "audio_url": "https://server8.mp3quran.net/afs/001.mp3",
       "start_ms": 0,
-      "end_ms": 6571,
+      "end_ms": 6327,
       "text_uthmani": "بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ",
-      "confidence": 0.0,
+      "confidence": 0.5140333333333333,
       "needs_review": true
     },
     {
@@ -25,11 +25,11 @@
       "ayah": 2,
       "reciter": "mishary_alafasy",
       "qiraa": "Hafs",
-      "audio_url": "https://download.quranicaudio.com/qdc/mishari_al_afasy/murattal/1.mp3",
-      "start_ms": 6571,
-      "end_ms": 13142,
+      "audio_url": "https://server8.mp3quran.net/afs/001.mp3",
+      "start_ms": 6327,
+      "end_ms": 13324,
       "text_uthmani": "ٱلْحَمْدُ لِلَّهِ رَبِّ ٱلْعَـٰلَمِينَ",
-      "confidence": 0.0,
+      "confidence": 0.51975,
       "needs_review": true
     },
     {
@@ -37,11 +37,11 @@
       "ayah": 3,
       "reciter": "mishary_alafasy",
       "qiraa": "Hafs",
-      "audio_url": "https://download.quranicaudio.com/qdc/mishari_al_afasy/murattal/1.mp3",
-      "start_ms": 13142,
-      "end_ms": 19713,
+      "audio_url": "https://server8.mp3quran.net/afs/001.mp3",
+      "start_ms": 13324,
+      "end_ms": 17909,
       "text_uthmani": "ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ",
-      "confidence": 0.0,
+      "confidence": 0.54985,
       "needs_review": true
     },
     {
@@ -49,11 +49,11 @@
       "ayah": 4,
       "reciter": "mishary_alafasy",
       "qiraa": "Hafs",
-      "audio_url": "https://download.quranicaudio.com/qdc/mishari_al_afasy/murattal/1.mp3",
-      "start_ms": 19713,
-      "end_ms": 26284,
+      "audio_url": "https://server8.mp3quran.net/afs/001.mp3",
+      "start_ms": 17909,
+      "end_ms": 26885,
       "text_uthmani": "مَـٰلِكِ يَوْمِ ٱلدِّينِ",
-      "confidence": 0.0,
+      "confidence": 0.47978,
       "needs_review": true
     },
     {
@@ -61,11 +61,11 @@
       "ayah": 5,
       "reciter": "mishary_alafasy",
       "qiraa": "Hafs",
-      "audio_url": "https://download.quranicaudio.com/qdc/mishari_al_afasy/murattal/1.mp3",
-      "start_ms": 26284,
-      "end_ms": 32855,
+      "audio_url": "https://server8.mp3quran.net/afs/001.mp3",
+      "start_ms": 26885,
+      "end_ms": 35338,
       "text_uthmani": "إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ",
-      "confidence": 0.0,
+      "confidence": 0.5499666666666666,
       "needs_review": true
     },
     {
@@ -73,11 +73,11 @@
       "ayah": 6,
       "reciter": "mishary_alafasy",
       "qiraa": "Hafs",
-      "audio_url": "https://download.quranicaudio.com/qdc/mishari_al_afasy/murattal/1.mp3",
-      "start_ms": 32855,
-      "end_ms": 39426,
+      "audio_url": "https://server8.mp3quran.net/afs/001.mp3",
+      "start_ms": 35338,
+      "end_ms": 41911,
       "text_uthmani": "ٱهْدِنَا ٱلصِّرَٰطَ ٱلْمُسْتَقِيمَ",
-      "confidence": 0.0,
+      "confidence": 0.56196,
       "needs_review": true
     },
     {
@@ -85,20 +85,20 @@
       "ayah": 7,
       "reciter": "mishary_alafasy",
       "qiraa": "Hafs",
-      "audio_url": "https://download.quranicaudio.com/qdc/mishari_al_afasy/murattal/1.mp3",
-      "start_ms": 39426,
-      "end_ms": 46000,
+      "audio_url": "https://server8.mp3quran.net/afs/001.mp3",
+      "start_ms": 41911,
+      "end_ms": 51931,
       "text_uthmani": "صِرَٰطَ ٱلَّذِينَ أَنْعَمْتَ عَلَيْهِمْ غَيْرِ ٱلْمَغْضُوبِ عَلَيْهِمْ وَلَا ٱلضَّآلِّينَ",
-      "confidence": 0.0,
+      "confidence": 0.5635266666666667,
       "needs_review": true
     }
   ],
-  "generated_at": "2026-07-12T12:44:34.747673+00:00",
-  "pipeline_version": "seed-demo-1.0",
-  "alignment_method": "estimated",
-  "alignment_note": "Timestamps are evenly distributed estimates only. Run the full pipeline with WhisperX for accurate alignment.",
-  "text_hash": "573abc64bcef6562",
-  "model_used": "none",
-  "mean_confidence": 0.0,
-  "ayahs_needing_review": 7
+  "metadata": {
+    "generated_at": "2026-07-12T14:53:52.708360Z",
+    "pipeline_version": "0.1.0",
+    "text_hash": "573abc64bcef6562",
+    "model_used": "whisperx-tiny",
+    "mean_confidence": 0.5341238095238096,
+    "ayahs_needing_review": 7
+  }
 }

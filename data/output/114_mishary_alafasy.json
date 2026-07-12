@@ -4,8 +4,8 @@
   "name_english": "An-Nas",
   "reciter": "mishary_alafasy",
   "qiraa": "Hafs",
-  "source_audio_url": "https://download.quranicaudio.com/qdc/mishari_al_afasy/murattal/114.mp3",
-  "audio_duration_ms": 21000,
+  "source_audio_url": "https://server8.mp3quran.net/afs/114.mp3",
+  "audio_duration_ms": 50050,
   "ayah_count": 6,
   "ayahs": [
     {
@@ -13,11 +13,11 @@
       "ayah": 1,
       "reciter": "mishary_alafasy",
       "qiraa": "Hafs",
-      "audio_url": "https://download.quranicaudio.com/qdc/mishari_al_afasy/murattal/114.mp3",
+      "audio_url": "https://server8.mp3quran.net/afs/114.mp3",
       "start_ms": 0,
-      "end_ms": 3500,
+      "end_ms": 6974,
       "text_uthmani": " قُلْ أَعُوذُ بِرَبِّ ٱلنَّاسِ",
-      "confidence": 0.0,
+      "confidence": 0.5300166666666666,
       "needs_review": true
     },
     {
@@ -25,11 +25,11 @@
       "ayah": 2,
       "reciter": "mishary_alafasy",
       "qiraa": "Hafs",
-      "audio_url": "https://download.quranicaudio.com/qdc/mishari_al_afasy/murattal/114.mp3",
-      "start_ms": 3500,
-      "end_ms": 7000,
+      "audio_url": "https://server8.mp3quran.net/afs/114.mp3",
+      "start_ms": 6974,
+      "end_ms": 13366,
       "text_uthmani": "مَلِكِ ٱلنَّاسِ",
-      "confidence": 0.0,
+      "confidence": 0.43172499999999997,
       "needs_review": true
     },
     {
@@ -37,11 +37,11 @@
       "ayah": 3,
       "reciter": "mishary_alafasy",
       "qiraa": "Hafs",
-      "audio_url": "https://download.quranicaudio.com/qdc/mishari_al_afasy/murattal/114.mp3",
-      "start_ms": 7000,
-      "end_ms": 10500,
+      "audio_url": "https://server8.mp3quran.net/afs/114.mp3",
+      "start_ms": 13366,
+      "end_ms": 24411,
       "text_uthmani": "إِلَـٰهِ ٱلنَّاسِ",
-      "confidence": 0.0,
+      "confidence": 0.5248249999999999,
       "needs_review": true
     },
     {
@@ -49,11 +49,11 @@
       "ayah": 4,
       "reciter": "mishary_alafasy",
       "qiraa": "Hafs",
-      "audio_url": "https://download.quranicaudio.com/qdc/mishari_al_afasy/murattal/114.mp3",
-      "start_ms": 10500,
-      "end_ms": 14000,
+      "audio_url": "https://server8.mp3quran.net/afs/114.mp3",
+      "start_ms": 24411,
+      "end_ms": 32826,
       "text_uthmani": "مِن شَرِّ ٱلْوَسْوَاسِ ٱلْخَنَّاسِ",
-      "confidence": 0.0,
+      "confidence": 0.49245,
       "needs_review": true
     },
     {
@@ -61,9 +61,9 @@
       "ayah": 5,
       "reciter": "mishary_alafasy",
       "qiraa": "Hafs",
-      "audio_url": "https://download.quranicaudio.com/qdc/mishari_al_afasy/murattal/114.mp3",
-      "start_ms": 14000,
-      "end_ms": 17500,
+      "audio_url": "https://server8.mp3quran.net/afs/114.mp3",
+      "start_ms": 32826,
+      "end_ms": 41708,
       "text_uthmani": "ٱلَّذِى يُوَسْوِسُ فِى صُدُورِ ٱلنَّاسِ",
       "confidence": 0.0,
       "needs_review": true
@@ -73,20 +73,20 @@
       "ayah": 6,
       "reciter": "mishary_alafasy",
       "qiraa": "Hafs",
-      "audio_url": "https://download.quranicaudio.com/qdc/mishari_al_afasy/murattal/114.mp3",
-      "start_ms": 17500,
-      "end_ms": 21000,
+      "audio_url": "https://server8.mp3quran.net/afs/114.mp3",
+      "start_ms": 41708,
+      "end_ms": 50050,
       "text_uthmani": "مِنَ ٱلْجِنَّةِ وَٱلنَّاسِ",
       "confidence": 0.0,
       "needs_review": true
     }
   ],
-  "generated_at": "2026-07-12T12:44:39.133122+00:00",
-  "pipeline_version": "seed-demo-1.0",
-  "alignment_method": "estimated",
-  "alignment_note": "Timestamps are evenly distributed estimates only. Run the full pipeline with WhisperX for accurate alignment.",
-  "text_hash": "9e87624828b12291",
-  "model_used": "none",
-  "mean_confidence": 0.0,
-  "ayahs_needing_review": 6
+  "metadata": {
+    "generated_at": "2026-07-12T14:54:59.537365Z",
+    "pipeline_version": "0.1.0",
+    "text_hash": "9e87624828b12291",
+    "model_used": "whisperx-tiny",
+    "mean_confidence": 0.32983611111111105,
+    "ayahs_needing_review": 6
+  }
 }
