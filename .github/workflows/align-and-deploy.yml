@@ -1,0 +1,202 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# align-and-deploy.yml
+#
+# Two-job pipeline:
+#   1. align  — runs WhisperX forced alignment on ubuntu amd64 (CPU, no GPU)
+#               using the tiny Whisper model (fast, alignment quality is not
+#               affected because canonical text is the input, not the ASR output)
+#               then commits updated data/output/*.json back to the repo.
+#
+#   2. deploy — uses `az acr build` (cloud build, no Docker in CI) to rebuild
+#               the Flask image with the fresh JSONs baked in, then calls
+#               `az containerapp update` to go live.
+#
+# ONE-TIME SETUP — run locally once, then add three GitHub secrets:
+#
+#   # 1. Get tenant + subscription IDs
+#   az account show --query "{tenantId:tenantId, subscriptionId:id}" -o json
+#
+#   # 2. Create app registration
+#   az ad app create --display-name "github-quranidx"
+#   # → note the appId from the output
+#
+#   # 3. Create service principal
+#   az ad sp create --id <appId>
+#   # → note the id (object ID) from the output
+#
+#   # 4. Grant Contributor role
+#   az role assignment create \
+#     --assignee <appId> \
+#     --role Contributor \
+#     --scope /subscriptions/3e89416f-3804-457e-8ec5-8c692669fde6
+#
+#   # 5. Add federated credential (replace ORG/REPO with your GitHub repo)
+#   az ad app federated-credential create --id <appId> --parameters '{
+#     "name": "github-main",
+#     "issuer": "https://token.actions.githubusercontent.com",
+#     "subject": "repo:odulkuyulu/quran-indexing:ref:refs/heads/main",
+#     "audiences": ["api://AzureADTokenExchange"]
+#   }'
+#
+#   # 6. Add three GitHub secrets (repo → Settings → Secrets → Actions):
+#   #   AZURE_CLIENT_ID       ← appId from step 2
+#   #   AZURE_TENANT_ID       ← tenantId from step 1
+#   #   AZURE_SUBSCRIPTION_ID ← subscriptionId from step 1
+# ─────────────────────────────────────────────────────────────────────────────
+
+name: Align & Deploy
+
+on:
+  # Manual trigger with customisable surah list
+  workflow_dispatch:
+    inputs:
+      surahs:
+        description: "Space-separated surah numbers to align"
+        default: "1 112 114"
+        required: true
+
+  # Auto-trigger on pipeline code changes
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "scripts/seed_demo.py"
+
+permissions:
+  contents: write   # push alignment output back to repo
+  id-token: write   # OIDC — lets GitHub get an Azure token without a stored secret
+
+# ── Shared resource names (not sensitive — hardcoded for simplicity) ──────────
+env:
+  ACR_NAME:            cryj5rva4yxmga2
+  CONTAINER_APP_NAME:  ca-quranidx-yj5rva4yxmga2
+  RESOURCE_GROUP:      rg-quranidx-dev
+
+# ─────────────────────────────────────────────────────────────────────────────
+jobs:
+
+  # ── Job 1: Forced Alignment ─────────────────────────────────────────────────
+  align:
+    name: WhisperX alignment (CPU)
+    runs-on: ubuntu-latest
+
+    outputs:
+      changed: ${{ steps.push.outputs.changed }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # Cache pip packages so reinstalls are fast after the first run
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: pipeline-py311-${{ hashFiles('requirements.txt') }}
+          restore-keys: pipeline-py311-
+
+      # Cache HuggingFace model weights (~1.5 GB total for tiny + wav2vec2-arabic)
+      - name: Cache HuggingFace models
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: hf-whisper-tiny-wav2vec2-arabic-v1
+
+      - name: Install system packages
+        run: sudo apt-get install -y --no-install-recommends ffmpeg
+
+      - name: Install Python packages (CPU torch)
+        run: |
+          # CPU-only PyTorch — ~220 MB, avoids pulling CUDA wheels
+          pip install torch torchaudio --index-url https://download.pytorch.org/whl/cpu
+          pip install faster-whisper openai-whisper
+          pip install "whisperx @ git+https://github.com/m-bain/whisperX.git"
+          # Remaining pipeline deps (excludes flask/gunicorn — not needed here)
+          pip install python-dotenv requests httpx rich tqdm \
+                      arabic-reshaper python-bidi jiwer \
+                      pydub librosa soundfile ffmpeg-python \
+                      azure-search-documents azure-identity
+
+      - name: Run forced alignment
+        env:
+          WHISPER_MODEL: tiny   # tiny = 74 MB, fast on CPU; alignment accuracy
+                                # unaffected since canonical text is the anchor
+          AUDIO_DIR:    ./data/audio
+          OUTPUT_DIR:   ./data/output
+          SURAHS: ${{ github.event.inputs.surahs || '1 112 114' }}
+        run: |
+          mkdir -p data/audio/raw data/audio/normalized data/output
+          for surah in $SURAHS; do
+            echo "──────────────────────────────────────────"
+            echo "  Aligning Surah $surah"
+            echo "──────────────────────────────────────────"
+            python -m src.pipeline --surah "$surah" --reciter mishary_alafasy
+          done
+
+      - name: Commit & push alignment output
+        id: push
+        env:
+          SURAHS: ${{ github.event.inputs.surahs || '1 112 114' }}
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/output/
+          if git diff --staged --quiet; then
+            echo "No alignment changes to commit."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            git commit -m "chore: update alignment output [skip ci]"
+            git push
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  # ── Job 2: Rebuild image & deploy to ACA ──────────────────────────────────
+  deploy:
+    name: Build image & deploy to ACA
+    needs: align
+    # Only runs when alignment produced new JSON files
+    if: needs.align.outputs.changed == 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the HEAD of main so we pick up the freshly committed JSONs
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Azure login (OIDC — no stored secret)
+        uses: azure/login@v2
+        with:
+          client-id:       ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id:       ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      # az acr build runs the Docker build entirely inside Azure —
+      # no Docker daemon needed on the runner, and the image is pushed
+      # directly to ACR. Much faster than building locally and pushing.
+      - name: Build & push image via ACR Tasks
+        run: |
+          az acr build \
+            --registry "$ACR_NAME" \
+            --image  "quranidx/web:${{ github.sha }}" \
+            --image  "quranidx/web:latest" \
+            .
+
+      - name: Update Container App
+        run: |
+          az containerapp update \
+            --name           "$CONTAINER_APP_NAME" \
+            --resource-group "$RESOURCE_GROUP" \
+            --image          "$ACR_NAME.azurecr.io/quranidx/web:${{ github.sha }}"
+
+      - name: Print live URL
+        run: |
+          FQDN=$(az containerapp show \
+            --name "$CONTAINER_APP_NAME" \
+            --resource-group "$RESOURCE_GROUP" \
+            --query "properties.configuration.ingress.fqdn" \
+            --output tsv)
+          echo "✅ Live at: https://$FQDN"

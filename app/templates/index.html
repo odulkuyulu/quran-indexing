@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quran Ayah Lookup</title>
+  <style>
+    /* ── reset / base ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Segoe UI", system-ui, sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      min-height: 100vh;
+    }
+
+    /* ── layout ── */
+    .app {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      grid-template-rows: auto 1fr;
+      min-height: 100vh;
+    }
+    header {
+      grid-column: 1 / -1;
+      background: linear-gradient(90deg, #1e293b 0%, #0f172a 100%);
+      border-bottom: 1px solid #334155;
+      padding: 1rem 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    header h1 { font-size: 1.4rem; font-weight: 700; color: #f8fafc; }
+    header span { font-size: 1.8rem; }
+    header .badge {
+      margin-left: auto;
+      font-size: 0.75rem;
+      background: #0ea5e9;
+      color: #fff;
+      padding: 0.2rem 0.6rem;
+      border-radius: 999px;
+    }
+
+    aside {
+      background: #1e293b;
+      border-right: 1px solid #334155;
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+    aside h2 { font-size: 0.85rem; text-transform: uppercase; letter-spacing: .06em; color: #94a3b8; }
+
+    select, input[type=range] { width: 100%; }
+    select {
+      background: #0f172a;
+      border: 1px solid #334155;
+      color: #e2e8f0;
+      padding: 0.45rem 0.6rem;
+      border-radius: 6px;
+      font-size: 0.9rem;
+    }
+    input[type=range] { accent-color: #0ea5e9; }
+
+    .meta-box {
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 0.75rem;
+      font-size: 0.82rem;
+      line-height: 1.8;
+      color: #94a3b8;
+    }
+    .meta-box span { color: #e2e8f0; font-weight: 600; }
+
+    main {
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      overflow-y: auto;
+    }
+
+    /* ── no data state ── */
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      color: #475569;
+      padding: 4rem 2rem;
+      text-align: center;
+    }
+    .empty-state .icon { font-size: 3rem; }
+    .empty-state code {
+      background: #1e293b;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      color: #7dd3fc;
+      display: block;
+      text-align: left;
+      margin-top: 0.5rem;
+    }
+
+    /* ── cards ── */
+    .card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 1.25rem;
+    }
+    .card h3 {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      color: #64748b;
+      margin-bottom: 0.75rem;
+    }
+
+    /* ── ayah display ── */
+    .ayah-grid { display: grid; grid-template-columns: 1fr 240px; gap: 1rem; }
+    .arabic-text {
+      font-size: clamp(1.4rem, 2.5vw, 2rem);
+      line-height: 2.2;
+      direction: rtl;
+      text-align: right;
+      font-family: "Traditional Arabic", "Scheherazade New", "Amiri", serif;
+      color: #f8fafc;
+      letter-spacing: 0.02em;
+    }
+
+    .metrics { display: flex; flex-direction: column; gap: 0.6rem; }
+    .metric {
+      display: flex; justify-content: space-between; align-items: baseline;
+      padding: 0.45rem 0.6rem;
+      background: #0f172a;
+      border-radius: 6px;
+    }
+    .metric-label { font-size: 0.78rem; color: #64748b; }
+    .metric-value { font-size: 1rem; font-weight: 700; color: #7dd3fc; }
+    .metric-value.warn { color: #fb923c; }
+
+    .review-badge {
+      display: inline-block;
+      background: #7c3aed33;
+      color: #c4b5fd;
+      border: 1px solid #7c3aed55;
+      border-radius: 6px;
+      padding: 0.3rem 0.6rem;
+      font-size: 0.78rem;
+      margin-top: 0.5rem;
+    }
+
+    /* ── audio player ── */
+    audio { width: 100%; border-radius: 8px; }
+    .audio-unavailable {
+      background: #0f172a;
+      border: 1px dashed #334155;
+      border-radius: 8px;
+      padding: 1rem;
+      font-size: 0.85rem;
+      color: #64748b;
+      text-align: center;
+    }
+
+    /* ── table ── */
+    details summary {
+      cursor: pointer;
+      font-size: 0.85rem;
+      color: #94a3b8;
+      padding: 0.5rem 0;
+      user-select: none;
+    }
+    details summary:hover { color: #e2e8f0; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.82rem; margin-top: 0.75rem; }
+    thead th {
+      text-align: left;
+      padding: 0.4rem 0.6rem;
+      color: #64748b;
+      border-bottom: 1px solid #334155;
+    }
+    tbody tr { cursor: pointer; transition: background 0.1s; }
+    tbody tr:hover { background: #0f172a; }
+    tbody tr.active { background: #0ea5e91a; }
+    tbody td { padding: 0.4rem 0.6rem; border-bottom: 1px solid #1e293b; }
+    .td-arabic { direction: rtl; font-family: "Traditional Arabic", serif; font-size: 1rem; }
+    .conf-ok { color: #4ade80; }
+    .conf-warn { color: #fb923c; }
+
+    /* ── spinner ── */
+    #spinner {
+      display: none;
+      position: fixed; inset: 0;
+      background: #0f172a99;
+      align-items: center; justify-content: center;
+      font-size: 1.2rem; color: #7dd3fc;
+      z-index: 100;
+    }
+    #spinner.active { display: flex; }
+
+    /* ── responsive ── */
+    @media (max-width: 700px) {
+      .app { grid-template-columns: 1fr; }
+      aside { border-right: none; border-bottom: 1px solid #334155; }
+      .ayah-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <span>📖</span>
+    <h1>Quran Ayah Lookup</h1>
+    <span class="badge">Forced Alignment</span>
+  </header>
+
+  <!-- ── sidebar ── -->
+  <aside>
+    <div>
+      <h2>Surah</h2>
+      {% if surahs %}
+        <select id="surahSelect">
+          {% for s in surahs %}
+            <option value="{{ s.num }}"
+                    data-ayah-count="{{ s.ayah_count }}"
+                    data-reciter="{{ s.reciter }}">
+              {{ s.num }}: {{ s.name_english }} ({{ s.name_arabic }})
+            </option>
+          {% endfor %}
+        </select>
+      {% else %}
+        <div style="font-size:0.82rem;color:#fb923c">No indexed surahs found.</div>
+      {% endif %}
+    </div>
+
+    <div>
+      <h2>Ayah &nbsp;<span id="ayahLabel" style="color:#7dd3fc">1</span></h2>
+      <input type="range" id="ayahSlider" min="1" max="1" value="1" />
+    </div>
+
+    <div class="meta-box" id="metaBox">
+      <div>Reciter: <span id="metaReciter">—</span></div>
+      <div>Qiraʼa: <span id="metaQiraa">—</span></div>
+      <div>Duration: <span id="metaDuration">—</span></div>
+      <div>Ayahs: <span id="metaAyahCount">—</span></div>
+    </div>
+  </aside>
+
+  <!-- ── main ── -->
+  <main id="main">
+    {% if not surahs %}
+    <div class="empty-state">
+      <div class="icon">🕌</div>
+      <p>No surahs have been indexed yet.<br/>Run the pipeline to get started:</p>
+      <code>python -m src.pipeline --surah 67 --reciter mishary_alafasy</code>
+    </div>
+    {% else %}
+    <!-- filled dynamically by JS -->
+    <div id="contentArea"></div>
+    {% endif %}
+  </main>
+
+</div>
+
+<div id="spinner">Loading…</div>
+
+<script>
+  // ── state ──
+  let currentSurah = null;
+  let currentAyahNum = 1;
+
+  const surahSelect  = document.getElementById("surahSelect");
+  const ayahSlider   = document.getElementById("ayahSlider");
+  const ayahLabel    = document.getElementById("ayahLabel");
+  const contentArea  = document.getElementById("contentArea");
+  const spinner      = document.getElementById("spinner");
+
+  // ── helpers ──
+  function show(el) { el.classList.add("active"); }
+  function hide(el) { el.classList.remove("active"); }
+  function fmt(ms)  { return (ms / 1000).toFixed(2) + "s"; }
+  function pct(v)   { return (v * 100).toFixed(1) + "%"; }
+
+  async function fetchJSON(url) {
+    const r = await fetch(url);
+    if (!r.ok) throw new Error(await r.text());
+    return r.json();
+  }
+
+  // ── load surah ──
+  async function loadSurah(num) {
+    show(spinner);
+    try {
+      currentSurah = await fetchJSON(`/api/surah/${num}`);
+      const count  = currentSurah.ayah_count || (currentSurah.ayahs || []).length;
+      ayahSlider.max = count;
+      ayahSlider.value = 1;
+      currentAyahNum = 1;
+      ayahLabel.textContent = 1;
+      document.getElementById("metaReciter").textContent   = currentSurah.reciter || "—";
+      document.getElementById("metaQiraa").textContent     = currentSurah.qiraa   || "Hafs";
+      document.getElementById("metaDuration").textContent  = fmt(currentSurah.audio_duration_ms || 0);
+      document.getElementById("metaAyahCount").textContent = count;
+      renderAyah(1);
+    } catch(e) {
+      contentArea.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>${e.message}</p></div>`;
+    } finally {
+      hide(spinner);
+    }
+  }
+
+  // ── render ayah ──
+  function renderAyah(num) {
+    if (!currentSurah) return;
+    const ayah = (currentSurah.ayahs || []).find(a => a.ayah === num);
+    if (!ayah) {
+      contentArea.innerHTML = `<div class="empty-state"><div class="icon">❓</div><p>Ayah ${num} not found in index.</p></div>`;
+      return;
+    }
+
+    const start = ayah.start_ms || 0;
+    const end   = ayah.end_ms   || 0;
+    const dur   = end - start;
+    const conf  = ayah.confidence || 0;
+    const needsReview = ayah.needs_review;
+    const reciter = currentSurah.reciter || "unknown";
+    const audioSrc = `/audio/${currentSurah.surah}/${start}/${end}?reciter=${encodeURIComponent(reciter)}`;
+
+    // build table rows
+    const rows = (currentSurah.ayahs || []).map(a => {
+      const active = a.ayah === num ? "active" : "";
+      const cClass = (a.confidence || 0) >= 0.85 ? "conf-ok" : "conf-warn";
+      const review = a.needs_review ? "⚠️" : "✓";
+      return `<tr class="${active}" onclick="selectAyah(${a.ayah})">
+        <td>${a.ayah}</td>
+        <td>${(a.start_ms/1000).toFixed(2)}</td>
+        <td>${(a.end_ms/1000).toFixed(2)}</td>
+        <td class="${cClass}">${pct(a.confidence||0)}</td>
+        <td>${review}</td>
+        <td class="td-arabic">${(a.text_uthmani||"").slice(0,40)}…</td>
+      </tr>`;
+    }).join("");
+
+    contentArea.innerHTML = `
+      <div class="card">
+        <h3>Surah ${currentSurah.surah} · ${currentSurah.name_english || ""} — Ayah ${num}</h3>
+        <div class="ayah-grid">
+          <div>
+            <div class="arabic-text">${ayah.text_uthmani || ""}</div>
+            ${needsReview ? '<span class="review-badge">⚠️ Flagged for review</span>' : ""}
+          </div>
+          <div class="metrics">
+            <div class="metric"><span class="metric-label">Start</span><span class="metric-value">${fmt(start)}</span></div>
+            <div class="metric"><span class="metric-label">End</span><span class="metric-value">${fmt(end)}</span></div>
+            <div class="metric"><span class="metric-label">Duration</span><span class="metric-value">${fmt(dur)}</span></div>
+            <div class="metric">
+              <span class="metric-label">Confidence</span>
+              <span class="metric-value ${conf < 0.85 ? "warn" : ""}">${pct(conf)}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>🎧 Listen to this Ayah</h3>
+        <audio controls preload="metadata" src="${audioSrc}">
+          Your browser does not support HTML5 audio.
+        </audio>
+        <div class="audio-unavailable" id="audioWarn" style="display:none">
+          Audio not available — ensure FFmpeg is installed and the pipeline has run for this surah.
+        </div>
+      </div>
+
+      <div class="card">
+        <details>
+          <summary>All Ayahs in Surah ${currentSurah.surah} (${(currentSurah.ayahs||[]).length} total)</summary>
+          <table>
+            <thead><tr>
+              <th>#</th><th>Start (s)</th><th>End (s)</th><th>Conf</th><th></th><th>Text</th>
+            </tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </details>
+      </div>
+
+      <div style="font-size:0.75rem;color:#475569;margin-top:0.5rem;text-align:center">
+        Canonical Uthmani text from Quran.com API — never generated or modified.
+        Timestamps produced by forced alignment only.
+      </div>
+    `;
+
+    // hide audio element and show warning if file errors
+    const audio = contentArea.querySelector("audio");
+    audio.addEventListener("error", () => {
+      audio.style.display = "none";
+      document.getElementById("audioWarn").style.display = "";
+    });
+  }
+
+  function selectAyah(num) {
+    currentAyahNum = num;
+    ayahSlider.value = num;
+    ayahLabel.textContent = num;
+    renderAyah(num);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  // ── event wiring ──
+  if (surahSelect) {
+    surahSelect.addEventListener("change", () => loadSurah(parseInt(surahSelect.value)));
+  }
+  ayahSlider.addEventListener("input", () => {
+    ayahLabel.textContent = ayahSlider.value;
+  });
+  ayahSlider.addEventListener("change", () => {
+    currentAyahNum = parseInt(ayahSlider.value);
+    renderAyah(currentAyahNum);
+  });
+
+  // ── boot ──
+  if (surahSelect && surahSelect.options.length > 0) {
+    loadSurah(parseInt(surahSelect.value));
+  }
+</script>
+</body>
+</html>

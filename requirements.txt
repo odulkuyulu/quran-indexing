@@ -1,0 +1,40 @@
+# Quran Audio-to-Ayah Indexer Dependencies
+
+# Core
+python-dotenv>=1.0.0
+requests>=2.31.0
+httpx>=0.27.0
+
+# Audio processing
+ffmpeg-python>=0.2.0
+pydub>=0.25.1
+librosa>=0.10.1
+soundfile>=0.12.1
+
+# Forced alignment - WhisperX
+# Note: whisperx requires torch, install PyTorch first per https://pytorch.org
+openai-whisper>=20231117
+whisperx @ git+https://github.com/m-bain/whisperX.git
+faster-whisper>=1.0.0
+
+# Arabic text processing
+arabic-reshaper>=3.0.0
+python-bidi>=0.4.2
+
+# Evaluation metrics
+jiwer>=3.0.3  # WER calculation
+
+# Azure AI Search (optional)
+azure-search-documents>=11.4.0
+azure-identity>=1.15.0
+
+# Demo app (Flask — ARM64 compatible, replaces Streamlit)
+flask>=3.0.0
+
+# Testing
+pytest>=8.0.0
+pytest-asyncio>=0.23.0
+
+# Development
+rich>=13.7.0  # Pretty console output
+tqdm>=4.66.0  # Progress bars

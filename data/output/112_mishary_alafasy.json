@@ -1,0 +1,68 @@
+{
+  "surah": 112,
+  "name_arabic": "الإخلاص",
+  "name_english": "Al-Ikhlas",
+  "reciter": "mishary_alafasy",
+  "qiraa": "Hafs",
+  "source_audio_url": "https://download.quranicaudio.com/qdc/mishari_al_afasy/murattal/112.mp3",
+  "audio_duration_ms": 17000,
+  "ayah_count": 4,
+  "ayahs": [
+    {
+      "surah": 112,
+      "ayah": 1,
+      "reciter": "mishary_alafasy",
+      "qiraa": "Hafs",
+      "audio_url": "https://download.quranicaudio.com/qdc/mishari_al_afasy/murattal/112.mp3",
+      "start_ms": 0,
+      "end_ms": 4250,
+      "text_uthmani": " قُلْ هُوَ ٱللَّهُ أَحَدٌ",
+      "confidence": 0.0,
+      "needs_review": true
+    },
+    {
+      "surah": 112,
+      "ayah": 2,
+      "reciter": "mishary_alafasy",
+      "qiraa": "Hafs",
+      "audio_url": "https://download.quranicaudio.com/qdc/mishari_al_afasy/murattal/112.mp3",
+      "start_ms": 4250,
+      "end_ms": 8500,
+      "text_uthmani": "ٱللَّهُ ٱلصَّمَدُ",
+      "confidence": 0.0,
+      "needs_review": true
+    },
+    {
+      "surah": 112,
+      "ayah": 3,
+      "reciter": "mishary_alafasy",
+      "qiraa": "Hafs",
+      "audio_url": "https://download.quranicaudio.com/qdc/mishari_al_afasy/murattal/112.mp3",
+      "start_ms": 8500,
+      "end_ms": 12750,
+      "text_uthmani": "لَمْ يَلِدْ وَلَمْ يُولَدْ",
+      "confidence": 0.0,
+      "needs_review": true
+    },
+    {
+      "surah": 112,
+      "ayah": 4,
+      "reciter": "mishary_alafasy",
+      "qiraa": "Hafs",
+      "audio_url": "https://download.quranicaudio.com/qdc/mishari_al_afasy/murattal/112.mp3",
+      "start_ms": 12750,
+      "end_ms": 17000,
+      "text_uthmani": "وَلَمْ يَكُن لَّهُۥ كُفُوًا أَحَدٌۢ",
+      "confidence": 0.0,
+      "needs_review": true
+    }
+  ],
+  "generated_at": "2026-07-12T12:44:36.980275+00:00",
+  "pipeline_version": "seed-demo-1.0",
+  "alignment_method": "estimated",
+  "alignment_note": "Timestamps are evenly distributed estimates only. Run the full pipeline with WhisperX for accurate alignment.",
+  "text_hash": "3eb53b77e8bd8abc",
+  "model_used": "none",
+  "mean_confidence": 0.0,
+  "ayahs_needing_review": 4
+}

@@ -1,0 +1,21 @@
+# Exclude everything, then whitelist only what the image needs.
+**
+!app/
+!src/
+!data/output/
+!requirements-web.txt
+!Dockerfile
+
+# Always exclude (override any re-inclusion above)
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+data/audio/
+data/corpus/
+.env
+.azure/
+infra/
+tests/
+scripts/
+.git/

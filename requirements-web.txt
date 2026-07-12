@@ -1,0 +1,7 @@
+# Web-only dependencies for the Flask demo container.
+# Heavy ML packages (whisperx, torch, librosa, etc.) are pipeline-only
+# and are NOT included here — keeps the image < 200 MB.
+
+flask>=3.0.0
+gunicorn>=21.2.0
+python-dotenv>=1.0.0
