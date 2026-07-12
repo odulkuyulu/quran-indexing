@@ -140,6 +140,8 @@ jobs:
                                 # unaffected since canonical text is the anchor
           AUDIO_DIR:    ./data/audio
           OUTPUT_DIR:   ./data/output
+          # mp3quran.net uses short reciter codes; "afs" = Mishary Rashid Alafasy
+          AUDIO_SOURCE_PATTERN: "https://server8.mp3quran.net/afs/{surah:03d}.mp3"
           SURAHS: ${{ github.event.inputs.surahs || '1 112 114' }}
         run: |
           mkdir -p data/audio/raw data/audio/normalized data/output
