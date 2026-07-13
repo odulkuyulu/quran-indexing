@@ -14,8 +14,11 @@ RUN pip install --no-cache-dir -r requirements-web.txt
 COPY app/ ./app/
 COPY src/ ./src/
 
-# Pre-create data directories (empty in demo; mount Azure Files here later)
-RUN mkdir -p data/output data/audio/raw data/audio/normalized
+# Bake in the alignment output (committed JSONs)
+COPY data/output/ ./data/output/
+
+# Pre-create audio directories (not stored in image)
+RUN mkdir -p data/audio/raw data/audio/normalized
 
 ENV PORT=5000
 ENV OUTPUT_DIR=/workspace/data/output
