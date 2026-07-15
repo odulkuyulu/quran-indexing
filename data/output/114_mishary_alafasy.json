@@ -17,7 +17,7 @@
       "start_ms": 0,
       "end_ms": 6974,
       "text_uthmani": " قُلْ أَعُوذُ بِرَبِّ ٱلنَّاسِ",
-      "confidence": 0.5300166666666666,
+      "confidence": 0.5313,
       "needs_review": true
     },
     {
@@ -39,9 +39,9 @@
       "qiraa": "Hafs",
       "audio_url": "https://server8.mp3quran.net/afs/114.mp3",
       "start_ms": 13366,
-      "end_ms": 24411,
+      "end_ms": 19979,
       "text_uthmani": "إِلَـٰهِ ٱلنَّاسِ",
-      "confidence": 0.5248249999999999,
+      "confidence": 0.5838,
       "needs_review": true
     },
     {
@@ -50,10 +50,10 @@
       "reciter": "mishary_alafasy",
       "qiraa": "Hafs",
       "audio_url": "https://server8.mp3quran.net/afs/114.mp3",
-      "start_ms": 24411,
-      "end_ms": 32826,
+      "start_ms": 19979,
+      "end_ms": 28073,
       "text_uthmani": "مِن شَرِّ ٱلْوَسْوَاسِ ٱلْخَنَّاسِ",
-      "confidence": 0.49245,
+      "confidence": 0.5691,
       "needs_review": true
     },
     {
@@ -62,10 +62,10 @@
       "reciter": "mishary_alafasy",
       "qiraa": "Hafs",
       "audio_url": "https://server8.mp3quran.net/afs/114.mp3",
-      "start_ms": 32826,
-      "end_ms": 41708,
+      "start_ms": 28073,
+      "end_ms": 36987,
       "text_uthmani": "ٱلَّذِى يُوَسْوِسُ فِى صُدُورِ ٱلنَّاسِ",
-      "confidence": 0.0,
+      "confidence": 0.182,
       "needs_review": true
     },
     {
@@ -74,7 +74,7 @@
       "reciter": "mishary_alafasy",
       "qiraa": "Hafs",
       "audio_url": "https://server8.mp3quran.net/afs/114.mp3",
-      "start_ms": 41708,
+      "start_ms": 36987,
       "end_ms": 50050,
       "text_uthmani": "مِنَ ٱلْجِنَّةِ وَٱلنَّاسِ",
       "confidence": 0.0,
@@ -82,11 +82,11 @@
     }
   ],
   "metadata": {
-    "generated_at": "2026-07-12T14:54:59.537365Z",
+    "generated_at": "2026-07-15T16:24:07.510502Z",
     "pipeline_version": "0.1.0",
     "text_hash": "9e87624828b12291",
     "model_used": "whisperx-tiny",
-    "mean_confidence": 0.32983611111111105,
+    "mean_confidence": 0.38298750000000004,
     "ayahs_needing_review": 6
   }
 }

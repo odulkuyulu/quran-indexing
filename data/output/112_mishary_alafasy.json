@@ -15,9 +15,9 @@
       "qiraa": "Hafs",
       "audio_url": "https://server8.mp3quran.net/afs/112.mp3",
       "start_ms": 0,
-      "end_ms": 7610,
+      "end_ms": 7149,
       "text_uthmani": " قُلْ هُوَ ٱللَّهُ أَحَدٌ",
-      "confidence": 0.5315333333333333,
+      "confidence": 0.5409833333333333,
       "needs_review": true
     },
     {
@@ -26,10 +26,10 @@
       "reciter": "mishary_alafasy",
       "qiraa": "Hafs",
       "audio_url": "https://server8.mp3quran.net/afs/112.mp3",
-      "start_ms": 7610,
-      "end_ms": 10303,
+      "start_ms": 7149,
+      "end_ms": 10173,
       "text_uthmani": "ٱللَّهُ ٱلصَّمَدُ",
-      "confidence": 0.63525,
+      "confidence": 0.6461,
       "needs_review": true
     },
     {
@@ -38,10 +38,10 @@
       "reciter": "mishary_alafasy",
       "qiraa": "Hafs",
       "audio_url": "https://server8.mp3quran.net/afs/112.mp3",
-      "start_ms": 10303,
-      "end_ms": 14719,
+      "start_ms": 10173,
+      "end_ms": 14118,
       "text_uthmani": "لَمْ يَلِدْ وَلَمْ يُولَدْ",
-      "confidence": 0.64925,
+      "confidence": 0.6301166666666667,
       "needs_review": true
     },
     {
@@ -50,19 +50,19 @@
       "reciter": "mishary_alafasy",
       "qiraa": "Hafs",
       "audio_url": "https://server8.mp3quran.net/afs/112.mp3",
-      "start_ms": 14719,
+      "start_ms": 14118,
       "end_ms": 21707,
       "text_uthmani": "وَلَمْ يَكُن لَّهُۥ كُفُوًا أَحَدٌۢ",
-      "confidence": 0.6446999999999999,
+      "confidence": 0.6429,
       "needs_review": true
     }
   ],
   "metadata": {
-    "generated_at": "2026-07-12T14:54:16.430113Z",
+    "generated_at": "2026-07-15T16:23:34.388668Z",
     "pipeline_version": "0.1.0",
     "text_hash": "3eb53b77e8bd8abc",
     "model_used": "whisperx-tiny",
-    "mean_confidence": 0.6151833333333333,
+    "mean_confidence": 0.6150249999999999,
     "ayahs_needing_review": 4
   }
 }
