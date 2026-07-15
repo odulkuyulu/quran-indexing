@@ -380,10 +380,10 @@ def search_ayahs(
 
     if semantic:
         try:
-            from azure.search.documents.models import QueryType, QueryCaptionType
+            from azure.search.documents.models import QueryType
             search_kwargs["query_type"] = QueryType.SEMANTIC
             search_kwargs["semantic_configuration_name"] = SEMANTIC_CONFIG_NAME
-            search_kwargs["query_caption"] = QueryCaptionType.EXTRACTIVE
+            search_kwargs["query_caption"] = "extractive"
         except ImportError:
             pass  # fall back to keyword search
 
