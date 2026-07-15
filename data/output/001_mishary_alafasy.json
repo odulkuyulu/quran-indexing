@@ -17,7 +17,7 @@
       "start_ms": 0,
       "end_ms": 6327,
       "text_uthmani": "بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ",
-      "confidence": 0.51135,
+      "confidence": 0.5140333333333333,
       "needs_review": true
     },
     {
@@ -27,9 +27,9 @@
       "qiraa": "Hafs",
       "audio_url": "https://server8.mp3quran.net/afs/001.mp3",
       "start_ms": 6327,
-      "end_ms": 14215,
+      "end_ms": 13324,
       "text_uthmani": "ٱلْحَمْدُ لِلَّهِ رَبِّ ٱلْعَـٰلَمِينَ",
-      "confidence": 0.5202166666666667,
+      "confidence": 0.51975,
       "needs_review": true
     },
     {
@@ -38,10 +38,10 @@
       "reciter": "mishary_alafasy",
       "qiraa": "Hafs",
       "audio_url": "https://server8.mp3quran.net/afs/001.mp3",
-      "start_ms": 14215,
-      "end_ms": 21202,
+      "start_ms": 13324,
+      "end_ms": 17909,
       "text_uthmani": "ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ",
-      "confidence": 0.5244749999999999,
+      "confidence": 0.54985,
       "needs_review": true
     },
     {
@@ -50,10 +50,10 @@
       "reciter": "mishary_alafasy",
       "qiraa": "Hafs",
       "audio_url": "https://server8.mp3quran.net/afs/001.mp3",
-      "start_ms": 21202,
-      "end_ms": 28766,
+      "start_ms": 17909,
+      "end_ms": 26885,
       "text_uthmani": "مَـٰلِكِ يَوْمِ ٱلدِّينِ",
-      "confidence": 0.5551,
+      "confidence": 0.47978,
       "needs_review": true
     },
     {
@@ -62,10 +62,10 @@
       "reciter": "mishary_alafasy",
       "qiraa": "Hafs",
       "audio_url": "https://server8.mp3quran.net/afs/001.mp3",
-      "start_ms": 28766,
-      "end_ms": 40000,
+      "start_ms": 26885,
+      "end_ms": 35338,
       "text_uthmani": "إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ",
-      "confidence": 0.5622166666666667,
+      "confidence": 0.5499666666666666,
       "needs_review": true
     },
     {
@@ -74,10 +74,10 @@
       "reciter": "mishary_alafasy",
       "qiraa": "Hafs",
       "audio_url": "https://server8.mp3quran.net/afs/001.mp3",
-      "start_ms": 40000,
-      "end_ms": 43442,
+      "start_ms": 35338,
+      "end_ms": 41911,
       "text_uthmani": "ٱهْدِنَا ٱلصِّرَٰطَ ٱلْمُسْتَقِيمَ",
-      "confidence": 0.5509000000000001,
+      "confidence": 0.56196,
       "needs_review": true
     },
     {
@@ -86,19 +86,19 @@
       "reciter": "mishary_alafasy",
       "qiraa": "Hafs",
       "audio_url": "https://server8.mp3quran.net/afs/001.mp3",
-      "start_ms": 43442,
+      "start_ms": 41911,
       "end_ms": 51931,
       "text_uthmani": "صِرَٰطَ ٱلَّذِينَ أَنْعَمْتَ عَلَيْهِمْ غَيْرِ ٱلْمَغْضُوبِ عَلَيْهِمْ وَلَا ٱلضَّآلِّينَ",
-      "confidence": 0.4508,
+      "confidence": 0.5635266666666667,
       "needs_review": true
     }
   ],
   "metadata": {
-    "generated_at": "2026-07-15T16:23:13.256939Z",
+    "generated_at": "2026-07-15T18:22:37.238054Z",
     "pipeline_version": "0.1.0",
     "text_hash": "573abc64bcef6562",
     "model_used": "whisperx-tiny",
-    "mean_confidence": 0.5250083333333333,
+    "mean_confidence": 0.5341238095238096,
     "ayahs_needing_review": 7
   }
 }
