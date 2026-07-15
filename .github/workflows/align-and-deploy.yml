@@ -200,8 +200,8 @@ jobs:
             echo "No alignment changes to commit."
             echo "changed=false" >> "$GITHUB_OUTPUT"
           else
-            git pull --rebase origin main
             git commit -m "chore: update alignment output [skip ci]"
+            git pull --rebase origin main
             git push
             echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
