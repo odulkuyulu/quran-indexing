@@ -40,7 +40,7 @@ INDEX_SCHEMA = {
             "name": "text_uthmani",
             "type": "Edm.String",
             "searchable": True,
-            "analyzer": "ar.microsoft"  # Arabic analyzer
+            "analyzer": "ar.microsoft"  # Arabic analyzer — root-based stemming
         },
         {"name": "start_ms", "type": "Edm.Int64"},
         {"name": "end_ms", "type": "Edm.Int64"},
@@ -48,6 +48,8 @@ INDEX_SCHEMA = {
         {"name": "confidence", "type": "Edm.Double", "filterable": True, "sortable": True}
     ]
 }
+
+SEMANTIC_CONFIG_NAME = "quran-semantic"
 
 
 def create_search_client(
@@ -106,18 +108,65 @@ def ensure_index_exists(
         from azure.search.documents.indexes.models import (
             SearchIndex,
             SearchField,
-            SearchFieldDataType
+            SearchFieldDataType,
+            SemanticConfiguration,
+            SemanticField,
+            SemanticPrioritizedFields,
+            SemanticSearch,
         )
     except ImportError:
         raise ImportError(
             "azure-search-documents not installed. Install with:\n"
             "pip install azure-search-documents"
         )
-    
+
     index_client = create_index_client(endpoint, key)
-    
+
     # Check if index exists
     existing_indexes = [idx.name for idx in index_client.list_indexes()]
+
+    if index_name in existing_indexes:
+        console.print(f"[dim]Index '{index_name}' already exists[/dim]")
+        return False
+
+    console.print(f"[blue]Creating index '{index_name}'...[/blue]")
+
+    # Build fields from schema
+    fields = []
+    type_map = {
+        "Edm.String": SearchFieldDataType.String,
+        "Edm.Int32": SearchFieldDataType.Int32,
+        "Edm.Int64": SearchFieldDataType.Int64,
+        "Edm.Double": SearchFieldDataType.Double
+    }
+
+    for field_def in INDEX_SCHEMA["fields"]:
+        field = SearchField(
+            name=field_def["name"],
+            type=type_map.get(field_def["type"], SearchFieldDataType.String),
+            key=field_def.get("key", False),
+            searchable=field_def.get("searchable", False),
+            filterable=field_def.get("filterable", False),
+            sortable=field_def.get("sortable", False),
+            facetable=field_def.get("facetable", False),
+            analyzer_name=field_def.get("analyzer")
+        )
+        fields.append(field)
+
+    # Semantic configuration — re-ranks results by meaning using Microsoft's language models
+    semantic_config = SemanticConfiguration(
+        name=SEMANTIC_CONFIG_NAME,
+        prioritized_fields=SemanticPrioritizedFields(
+            content_fields=[SemanticField(field_name="text_uthmani")]
+        )
+    )
+    semantic_search = SemanticSearch(configurations=[semantic_config])
+
+    index = SearchIndex(name=index_name, fields=fields, semantic_search=semantic_search)
+    index_client.create_index(index)
+
+    console.print(f"[green]✓[/green] Index '{index_name}' created with semantic configuration")
+    return True
     
     if index_name in existing_indexes:
         console.print(f"[dim]Index '{index_name}' already exists[/dim]")
@@ -295,44 +344,60 @@ def search_ayahs(
     key: Optional[str] = None,
     index_name: Optional[str] = None,
     filters: Optional[str] = None,
-    top: int = 10
+    top: int = 10,
+    semantic: bool = False
 ) -> List[Dict]:
     """
     Search for ayahs in the index.
-    
+
     Args:
-        query: Search query (Arabic text)
+        query: Search query (Arabic text or keyword)
         endpoint: Azure AI Search endpoint
         key: Azure AI Search query key
         index_name: Index name
         filters: OData filter expression (e.g., "surah eq 67")
         top: Maximum results to return
-        
+        semantic: Enable semantic ranking (re-ranks by meaning, not just keyword frequency)
+
     Returns:
         List of matching ayah documents
     """
     endpoint = endpoint or os.getenv("AZURE_SEARCH_ENDPOINT")
     key = key or os.getenv("AZURE_SEARCH_KEY")
     index_name = index_name or os.getenv("AZURE_SEARCH_INDEX", "quran-ayah-index")
-    
+
     if not endpoint or not key:
         raise ValueError("Azure AI Search credentials not configured")
-    
+
     client = create_search_client(endpoint, key, index_name)
-    
-    results = client.search(
+
+    search_kwargs: Dict[str, Any] = dict(
         search_text=query,
         filter=filters,
         top=top,
-        include_total_count=True
+        include_total_count=True,
     )
-    
+
+    if semantic:
+        try:
+            from azure.search.documents.models import QueryType, QueryCaptionType
+            search_kwargs["query_type"] = QueryType.SEMANTIC
+            search_kwargs["semantic_configuration_name"] = SEMANTIC_CONFIG_NAME
+            search_kwargs["query_caption"] = QueryCaptionType.EXTRACTIVE
+        except ImportError:
+            pass  # fall back to keyword search
+
+    results = client.search(**search_kwargs)
+
     documents = []
     for result in results:
-        # Convert to dict, removing @search metadata
         doc = {k: v for k, v in result.items() if not k.startswith("@")}
+        # Attach semantic captions if available
+        captions = getattr(result, "@search.captions", None)
+        if captions:
+            doc["_caption"] = captions[0].text if captions else None
         documents.append(doc)
-    
+
     return documents
 
 

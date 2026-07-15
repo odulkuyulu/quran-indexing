@@ -143,13 +143,17 @@ jobs:
           # mp3quran.net uses short reciter codes; "afs" = Mishary Rashid Alafasy
           AUDIO_SOURCE_PATTERN: "https://server8.mp3quran.net/afs/{surah:03d}.mp3"
           SURAHS: ${{ github.event.inputs.surahs || '1 112 114' }}
+          # Azure AI Search — upload aligned ayahs to the search index after alignment
+          AZURE_SEARCH_ENDPOINT: ${{ secrets.AZURE_SEARCH_ENDPOINT }}
+          AZURE_SEARCH_KEY:      ${{ secrets.AZURE_SEARCH_KEY }}
+          AZURE_SEARCH_INDEX:    quran-ayah-index
         run: |
           mkdir -p data/audio/raw data/audio/normalized data/output
           for surah in $SURAHS; do
             echo "──────────────────────────────────────────"
             echo "  Aligning Surah $surah"
             echo "──────────────────────────────────────────"
-            python -m src.pipeline --surah "$surah" --reciter mishary_alafasy
+            python -m src.pipeline --surah "$surah" --reciter mishary_alafasy --upload
           done
 
       - name: Commit & push alignment output
@@ -206,7 +210,11 @@ jobs:
           az containerapp update \
             --name           "$CONTAINER_APP_NAME" \
             --resource-group "$RESOURCE_GROUP" \
-            --image          "$ACR_NAME.azurecr.io/quranidx/web:${{ github.sha }}"
+            --image          "$ACR_NAME.azurecr.io/quranidx/web:${{ github.sha }}" \
+            --set-env-vars \
+              "AZURE_SEARCH_ENDPOINT=${{ secrets.AZURE_SEARCH_ENDPOINT }}" \
+              "AZURE_SEARCH_KEY=${{ secrets.AZURE_SEARCH_KEY }}" \
+              "AZURE_SEARCH_INDEX=quran-ayah-index"
 
       - name: Print live URL
         run: |

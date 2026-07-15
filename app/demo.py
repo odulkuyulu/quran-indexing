@@ -26,6 +26,9 @@ load_dotenv()
 # Configuration
 OUTPUT_DIR = Path(os.getenv("OUTPUT_DIR", "./data/output"))
 AUDIO_DIR = Path(os.getenv("AUDIO_DIR", "./data/audio"))
+SEARCH_ENDPOINT = os.getenv("AZURE_SEARCH_ENDPOINT", "")
+SEARCH_KEY = os.getenv("AZURE_SEARCH_KEY", "")
+SEARCH_INDEX = os.getenv("AZURE_SEARCH_INDEX", "quran-ayah-index")
 
 app = Flask(__name__, template_folder="templates")
 
@@ -142,6 +145,39 @@ def audio_slice(surah_num: int, start_ms: int, end_ms: int):
     if not path:
         abort(404, description="Audio file not found. Run the pipeline first.")
     return send_file(str(path), mimetype="audio/mpeg")
+
+
+@app.route("/api/search")
+def api_search():
+    q = request.args.get("q", "").strip()
+    if not q:
+        return jsonify({"results": [], "count": 0, "error": None})
+
+    if not SEARCH_ENDPOINT or not SEARCH_KEY:
+        return jsonify({"results": [], "count": 0, "error": "Search not configured"})
+
+    semantic = request.args.get("semantic", "false").lower() == "true"
+
+    try:
+        import sys
+        sys.path.insert(0, str(Path(__file__).parent.parent))
+        from src.search_loader import search_ayahs
+        hits = search_ayahs(
+            query=q,
+            endpoint=SEARCH_ENDPOINT,
+            key=SEARCH_KEY,
+            index_name=SEARCH_INDEX,
+            top=12,
+            semantic=semantic,
+        )
+        return jsonify({"results": hits, "count": len(hits), "error": None, "semantic": semantic})
+    except Exception as e:
+        return jsonify({"results": [], "count": 0, "error": str(e)})
+
+
+@app.route("/api/search/status")
+def api_search_status():
+    return jsonify({"configured": bool(SEARCH_ENDPOINT and SEARCH_KEY)})
 
 
 # ---------------------------------------------------------------------------

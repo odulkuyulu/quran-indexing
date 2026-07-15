@@ -200,6 +200,56 @@
     }
     #spinner.active { display: flex; }
 
+    /* ── search ── */
+    .search-wrap { position: relative; }
+    .search-wrap input[type=text] {
+      width: 100%;
+      background: #0f172a;
+      border: 1px solid #334155;
+      color: #e2e8f0;
+      padding: 0.45rem 2rem 0.45rem 0.6rem;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-family: "Traditional Arabic", "Segoe UI", sans-serif;
+    }
+    .search-wrap input[type=text]:focus { outline: none; border-color: #0ea5e9; }
+    .search-wrap input[type=text]::placeholder { color: #475569; font-size: 0.85rem; font-family: "Segoe UI", sans-serif; }
+    .search-semantic-toggle {
+      display: flex; align-items: center; gap: 0.4rem;
+      font-size: 0.75rem; color: #64748b; margin-top: 0.4rem; cursor: pointer;
+    }
+    .search-semantic-toggle input { accent-color: #0ea5e9; cursor: pointer; }
+    .search-semantic-toggle:hover { color: #94a3b8; }
+    .search-results-card {
+      background: #1e293b;
+      border: 1px solid #0ea5e9;
+      border-radius: 12px;
+      padding: 1.25rem;
+      animation: fadeIn 0.2s ease;
+    }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:none; } }
+    .search-results-card h3 { font-size: 0.8rem; text-transform: uppercase; letter-spacing:.05em; color: #0ea5e9; margin-bottom: 0.75rem; }
+    .search-result-item {
+      display: flex; align-items: flex-start; gap: 0.75rem;
+      padding: 0.65rem 0.5rem;
+      border-bottom: 1px solid #1e293b;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: background 0.1s;
+    }
+    .search-result-item:last-child { border-bottom: none; }
+    .search-result-item:hover { background: #0f172a; }
+    .search-result-ref {
+      min-width: 52px; font-size: 0.75rem; font-weight: 700;
+      color: #0ea5e9; background: #0ea5e91a;
+      border-radius: 4px; padding: 0.2rem 0.4rem;
+      text-align: center; line-height: 1.4;
+    }
+    .search-result-text { direction: rtl; text-align: right; font-family: "Traditional Arabic", serif; font-size: 1.05rem; color: #f8fafc; flex: 1; }
+    .search-result-conf { font-size: 0.72rem; color: #475569; margin-top: 0.2rem; }
+    .search-empty { font-size: 0.85rem; color: #475569; padding: 0.5rem 0; }
+    .search-badge { font-size: 0.72rem; background: #7c3aed33; color: #c4b5fd; border: 1px solid #7c3aed55; border-radius: 4px; padding: 0.15rem 0.4rem; margin-left: 0.4rem; }
+
     /* ── responsive ── */
     @media (max-width: 700px) {
       .app { grid-template-columns: 1fr; }
@@ -247,6 +297,17 @@
       <div>Duration: <span id="metaDuration">—</span></div>
       <div>Ayahs: <span id="metaAyahCount">—</span></div>
     </div>
+
+    <div id="searchSection" style="display:none">
+      <h2>Search <span id="searchBadge" class="search-badge" style="display:none">Semantic</span></h2>
+      <div class="search-wrap">
+        <input type="text" id="searchInput" placeholder="Search ayahs…" autocomplete="off" dir="auto" />
+      </div>
+      <label class="search-semantic-toggle">
+        <input type="checkbox" id="semanticToggle" />
+        Semantic ranking
+      </label>
+    </div>
   </aside>
 
   <!-- ── main ── -->
@@ -258,6 +319,8 @@
       <code>python -m src.pipeline --surah 67 --reciter mishary_alafasy</code>
     </div>
     {% else %}
+    <!-- search results (shown when a query is active) -->
+    <div id="searchResultsArea"></div>
     <!-- filled dynamically by JS -->
     <div id="contentArea"></div>
     {% endif %}
@@ -419,6 +482,77 @@
     currentAyahNum = parseInt(ayahSlider.value);
     renderAyah(currentAyahNum);
   });
+
+  // ── search ──
+  const searchSection    = document.getElementById("searchSection");
+  const searchInput      = document.getElementById("searchInput");
+  const semanticToggle   = document.getElementById("semanticToggle");
+  const searchBadge      = document.getElementById("searchBadge");
+  const searchResultsArea = document.getElementById("searchResultsArea");
+  let searchTimer = null;
+
+  // Check if search is configured and show/hide the search panel
+  fetch("/api/search/status").then(r => r.json()).then(s => {
+    if (s.configured && searchSection) searchSection.style.display = "";
+  }).catch(() => {});
+
+  semanticToggle && semanticToggle.addEventListener("change", () => {
+    searchBadge.style.display = semanticToggle.checked ? "" : "none";
+    if (searchInput.value.trim()) runSearch(searchInput.value.trim());
+  });
+
+  searchInput && searchInput.addEventListener("input", () => {
+    clearTimeout(searchTimer);
+    const q = searchInput.value.trim();
+    if (!q) { searchResultsArea.innerHTML = ""; return; }
+    searchTimer = setTimeout(() => runSearch(q), 350);
+  });
+
+  async function runSearch(q) {
+    const semantic = semanticToggle && semanticToggle.checked;
+    try {
+      const data = await fetchJSON(`/api/search?q=${encodeURIComponent(q)}&semantic=${semantic}`);
+      renderSearchResults(data, q);
+    } catch(e) {
+      searchResultsArea.innerHTML = `<div class="search-results-card"><p class="search-empty">Search error: ${e.message}</p></div>`;
+    }
+  }
+
+  function renderSearchResults(data, q) {
+    if (data.error) {
+      searchResultsArea.innerHTML = `<div class="search-results-card"><p class="search-empty">⚠️ ${data.error}</p></div>`;
+      return;
+    }
+    if (!data.results || data.results.length === 0) {
+      searchResultsArea.innerHTML = `<div class="search-results-card"><h3>Search results for "${q}"</h3><p class="search-empty">No ayahs found.</p></div>`;
+      return;
+    }
+    const semanticLabel = data.semantic ? ' <span class="search-badge">Semantic</span>' : '';
+    const items = data.results.map(r => {
+      const conf = r.confidence ? (r.confidence * 100).toFixed(0) + "% confidence" : "";
+      return `<div class="search-result-item" onclick="jumpToResult(${r.surah}, ${r.ayah})">
+        <div class="search-result-ref">${r.surah}:${r.ayah}</div>
+        <div style="flex:1">
+          <div class="search-result-text">${r.text_uthmani || ""}</div>
+          <div class="search-result-conf">${conf}</div>
+        </div>
+      </div>`;
+    }).join("");
+    searchResultsArea.innerHTML = `
+      <div class="search-results-card">
+        <h3>Results for "${q}"${semanticLabel} &nbsp;<span style="font-weight:400;color:#475569">${data.count} ayah${data.count !== 1 ? "s" : ""}</span></h3>
+        ${items}
+      </div>`;
+  }
+
+  function jumpToResult(surah, ayah) {
+    searchResultsArea.innerHTML = "";
+    searchInput.value = "";
+    if (surahSelect) {
+      surahSelect.value = surah;
+    }
+    loadSurah(surah).then ? loadSurah(surah).then(() => selectAyah(ayah)) : setTimeout(() => selectAyah(ayah), 800);
+  }
 
   // ── boot ──
   if (surahSelect && surahSelect.options.length > 0) {
