@@ -573,7 +573,8 @@
   function renderKaraokeView() {
     if (!currentSurah) return;
     const ayahs    = currentSurah.ayahs || [];
-    const audioUrl = currentSurah.audio_url || "";
+    const audioUrl = currentSurah.source_audio_url || currentSurah.audio_url
+                     || (ayahs[0] && ayahs[0].audio_url) || "";
 
     const rows = ayahs.map(a => `
       <div class="karaoke-row" id="krow-${a.ayah}"
