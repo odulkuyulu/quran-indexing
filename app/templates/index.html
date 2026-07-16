@@ -250,6 +250,77 @@
     .search-empty { font-size: 0.85rem; color: #475569; padding: 0.5rem 0; }
     .search-badge { font-size: 0.72rem; background: #7c3aed33; color: #c4b5fd; border: 1px solid #7c3aed55; border-radius: 4px; padding: 0.15rem 0.4rem; margin-left: 0.4rem; }
 
+    /* ── view toggle ── */
+    .view-toggle {
+      display: flex;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      overflow: hidden;
+      font-size: 0.78rem;
+    }
+    .view-toggle button {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: #64748b;
+      padding: 0.4rem 0.3rem;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+      font-size: 0.78rem;
+    }
+    .view-toggle button.active { background: #0ea5e9; color: #fff; }
+    .view-toggle button:hover:not(.active) { background: #1e293b; color: #e2e8f0; }
+
+    /* ── karaoke / surah player ── */
+    .karaoke-scroll {
+      display: flex;
+      flex-direction: column;
+      max-height: 60vh;
+      overflow-y: auto;
+      scroll-behavior: smooth;
+    }
+    .karaoke-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      padding: 0.8rem 1rem;
+      border-bottom: 1px solid #0f172a;
+      border-left: 3px solid transparent;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .karaoke-row:hover { background: #0f172a; }
+    .karaoke-row.active {
+      background: rgba(14, 165, 233, 0.09);
+      border-left-color: #0ea5e9;
+    }
+    .karaoke-num {
+      min-width: 26px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #475569;
+      padding-top: 0.35rem;
+      flex-shrink: 0;
+    }
+    .karaoke-row.active .karaoke-num { color: #0ea5e9; }
+    .karaoke-body { flex: 1; display: flex; flex-direction: column; align-items: flex-end; gap: 0.2rem; }
+    .karaoke-text {
+      direction: rtl;
+      text-align: right;
+      font-family: "Traditional Arabic", "Scheherazade New", "Amiri", serif;
+      font-size: 1.2rem;
+      line-height: 1.9;
+      color: #475569;
+      transition: color 0.2s, font-size 0.2s;
+    }
+    .karaoke-row.active .karaoke-text { color: #f8fafc; font-size: 1.35rem; }
+    .karaoke-time {
+      font-size: 0.68rem;
+      color: #334155;
+      font-variant-numeric: tabular-nums;
+    }
+    .karaoke-row.active .karaoke-time { color: #38bdf8; }
+
     /* ── responsive ── */
     @media (max-width: 700px) {
       .app { grid-template-columns: 1fr; }
@@ -286,7 +357,12 @@
       {% endif %}
     </div>
 
-    <div>
+    <div class="view-toggle" style="margin-top:-0.25rem">
+      <button id="btnAyahView" class="active" onclick="setView('ayah')">◉ Ayah picker</button>
+      <button id="btnKaraokeView" onclick="setView('karaoke')">▶ Surah player</button>
+    </div>
+
+    <div id="sliderSection">
       <h2>Ayah &nbsp;<span id="ayahLabel" style="color:#7dd3fc">1</span></h2>
       <input type="range" id="ayahSlider" min="1" max="1" value="1" />
     </div>
@@ -334,6 +410,7 @@
   // ── state ──
   let currentSurah = null;
   let currentAyahNum = 1;
+  let viewMode = "ayah";
 
   const surahSelect  = document.getElementById("surahSelect");
   const ayahSlider   = document.getElementById("ayahSlider");
@@ -367,7 +444,8 @@
       document.getElementById("metaQiraa").textContent     = currentSurah.qiraa   || "Hafs";
       document.getElementById("metaDuration").textContent  = fmt(currentSurah.audio_duration_ms || 0);
       document.getElementById("metaAyahCount").textContent = count;
-      renderAyah(1);
+      if (viewMode === "karaoke") renderKaraokeView();
+      else renderAyah(1);
     } catch(e) {
       contentArea.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>${e.message}</p></div>`;
     } finally {
@@ -477,6 +555,73 @@
     ayahLabel.textContent = num;
     renderAyah(num);
     window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  // ── view toggle ──
+  function setView(mode) {
+    viewMode = mode;
+    document.getElementById("btnAyahView").classList.toggle("active", mode === "ayah");
+    document.getElementById("btnKaraokeView").classList.toggle("active", mode === "karaoke");
+    const sliderSection = document.getElementById("sliderSection");
+    if (sliderSection) sliderSection.style.display = mode === "ayah" ? "" : "none";
+    if (!currentSurah) return;
+    if (mode === "karaoke") renderKaraokeView();
+    else renderAyah(currentAyahNum);
+  }
+
+  // ── karaoke / surah player ──
+  function renderKaraokeView() {
+    if (!currentSurah) return;
+    const ayahs    = currentSurah.ayahs || [];
+    const audioUrl = currentSurah.audio_url || "";
+
+    const rows = ayahs.map(a => `
+      <div class="karaoke-row" id="krow-${a.ayah}"
+           data-start="${a.start_ms}" data-end="${a.end_ms}"
+           onclick="karaokeSeek(${a.ayah})">
+        <span class="karaoke-num">${a.ayah}</span>
+        <div class="karaoke-body">
+          <span class="karaoke-text">${a.text_uthmani || ""}</span>
+          <span class="karaoke-time">${(a.start_ms/1000).toFixed(2)}s – ${(a.end_ms/1000).toFixed(2)}s</span>
+        </div>
+      </div>`).join("");
+
+    contentArea.innerHTML = `
+      <div class="card">
+        <h3>▶ Surah ${currentSurah.surah} — ${currentSurah.name_english || ""} · Full Recitation</h3>
+        ${audioUrl
+          ? `<audio id="surahPlayer" controls src="${audioUrl}" preload="none"></audio>
+             <div style="font-size:0.72rem;color:#475569;margin-top:0.4rem">Click any ayah row to jump to that position</div>`
+          : '<div class="audio-unavailable">Audio URL not available in index data.</div>'}
+      </div>
+      <div class="card" style="padding:0;overflow:hidden">
+        <div class="karaoke-scroll" id="karaokeScroll">${rows}</div>
+      </div>`;
+
+    const player = document.getElementById("surahPlayer");
+    if (!player) return;
+
+    let activeRow = null;
+    player.addEventListener("timeupdate", () => {
+      const ms = player.currentTime * 1000;
+      const hit = ayahs.find(a => ms >= a.start_ms && ms < a.end_ms);
+      if (!hit) return;
+      const row = document.getElementById(`krow-${hit.ayah}`);
+      if (!row || row === activeRow) return;
+      if (activeRow) activeRow.classList.remove("active");
+      activeRow = row;
+      row.classList.add("active");
+      row.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+  }
+
+  function karaokeSeek(ayahNum) {
+    const player = document.getElementById("surahPlayer");
+    const ayah = (currentSurah.ayahs || []).find(a => a.ayah === ayahNum);
+    if (player && ayah) {
+      player.currentTime = ayah.start_ms / 1000;
+      player.play();
+    }
   }
 
   // ── event wiring ──
