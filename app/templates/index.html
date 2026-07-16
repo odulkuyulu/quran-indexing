@@ -321,11 +321,49 @@
     }
     .karaoke-row.active .karaoke-time { color: #38bdf8; }
 
+    /* ── live alignment simulation ── */
+    .sim-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    .sim-terminal {
+      background: #020617;
+      border: 1px solid #1e293b;
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      font-family: "Cascadia Code", "Fira Code", "Consolas", monospace;
+      font-size: 0.72rem;
+      line-height: 1.65;
+      min-height: 260px;
+      max-height: 500px;
+      overflow-y: auto;
+      color: #4ade80;
+    }
+    .sim-log-line  { opacity: 0; animation: logIn 0.15s ease forwards; white-space: pre; }
+    @keyframes logIn { to { opacity: 1; } }
+    .sim-log-dim  { color: #334155; }
+    .sim-log-ok   { color: #4ade80; }
+    .sim-log-busy { color: #fbbf24; }
+    .sim-log-head { color: #7dd3fc; }
+    .sim-ayah-row {
+      display: flex; align-items: flex-start; gap: 0.75rem;
+      padding: 0.8rem 1rem;
+      border-bottom: 1px solid #0f172a;
+      border-left: 3px solid transparent;
+      opacity: 0; transform: translateY(6px);
+      transition: opacity 0.4s ease, transform 0.4s ease;
+    }
+    .sim-ayah-row.revealed { opacity: 1; transform: none; border-left-color: #22d3ee44; }
+    .conf-bar-wrap { height: 3px; background: #1e293b; border-radius: 2px; margin-top: 0.35rem; width: 100%; overflow: hidden; }
+    .conf-bar      { height: 100%; width: 0; border-radius: 2px; transition: width 0.7s ease; }
+
     /* ── responsive ── */
     @media (max-width: 700px) {
       .app { grid-template-columns: 1fr; }
       aside { border-right: none; border-bottom: 1px solid #334155; }
       .ayah-grid { grid-template-columns: 1fr; }
+      .sim-layout { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -358,8 +396,9 @@
     </div>
 
     <div class="view-toggle" style="margin-top:-0.25rem">
-      <button id="btnAyahView" class="active" onclick="setView('ayah')">◉ Ayah picker</button>
-      <button id="btnKaraokeView" onclick="setView('karaoke')">▶ Surah player</button>
+      <button id="btnAyahView" class="active" onclick="setView('ayah')">◉ Ayah</button>
+      <button id="btnKaraokeView" onclick="setView('karaoke')">▶ Surah</button>
+      <button id="btnSimView" onclick="setView('sim')">⚡ Live</button>
     </div>
 
     <div id="sliderSection">
@@ -445,6 +484,7 @@
       document.getElementById("metaDuration").textContent  = fmt(currentSurah.audio_duration_ms || 0);
       document.getElementById("metaAyahCount").textContent = count;
       if (viewMode === "karaoke") renderKaraokeView();
+      else if (viewMode === "sim") renderSimView();
       else renderAyah(1);
     } catch(e) {
       contentArea.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>${e.message}</p></div>`;
@@ -562,10 +602,12 @@
     viewMode = mode;
     document.getElementById("btnAyahView").classList.toggle("active", mode === "ayah");
     document.getElementById("btnKaraokeView").classList.toggle("active", mode === "karaoke");
+    document.getElementById("btnSimView").classList.toggle("active", mode === "sim");
     const sliderSection = document.getElementById("sliderSection");
     if (sliderSection) sliderSection.style.display = mode === "ayah" ? "" : "none";
     if (!currentSurah) return;
     if (mode === "karaoke") renderKaraokeView();
+    else if (mode === "sim") renderSimView();
     else renderAyah(currentAyahNum);
   }
 
@@ -623,6 +665,125 @@
       player.currentTime = ayah.start_ms / 1000;
       player.play();
     }
+  }
+
+  // ── live alignment simulation ──
+  function renderSimView() {
+    if (!currentSurah) return;
+    const ayahs   = currentSurah.ayahs || [];
+    const totalMs = currentSurah.audio_duration_ms || 0;
+
+    const slots = ayahs.map(a => `
+      <div class="sim-ayah-row" id="simrow-${a.ayah}">
+        <span class="karaoke-num">${a.ayah}</span>
+        <div class="karaoke-body" style="width:100%">
+          <span class="karaoke-text" id="simtext-${a.ayah}" dir="rtl"></span>
+          <span style="font-size:0.68rem;color:#475569;font-variant-numeric:tabular-nums" id="simmeta-${a.ayah}"></span>
+          <div class="conf-bar-wrap"><div class="conf-bar" id="simbar-${a.ayah}"></div></div>
+        </div>
+      </div>`).join("");
+
+    contentArea.innerHTML = `
+      <div class="card" style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
+        <button id="simRunBtn" onclick="startSimulation()"
+          style="background:#0ea5e9;color:#fff;border:none;border-radius:6px;padding:0.45rem 1.1rem;cursor:pointer;font-size:0.85rem;font-weight:600">
+          ▶ Run forced alignment
+        </button>
+        <span id="simStatus" style="font-size:0.82rem;color:#64748b">
+          Simulate the WhisperX pipeline discovering timestamps in real time
+        </span>
+      </div>
+      <div class="sim-layout">
+        <div class="card" style="padding:0;overflow:hidden">
+          <div style="font-size:0.72rem;color:#475569;padding:0.5rem 1rem;border-bottom:1px solid #0f172a">
+            ${currentSurah.name_english} &middot; ${ayahs.length} ayahs &middot; ${(totalMs/1000).toFixed(2)}s
+          </div>
+          <div class="karaoke-scroll" id="simAyahList">${slots}</div>
+        </div>
+        <div class="sim-terminal" id="simTerminal">
+          <span style="color:#334155;font-style:italic">Press ▶ to simulate forced alignment…</span>
+        </div>
+      </div>`;
+  }
+
+  function startSimulation() {
+    const ayahs  = currentSurah.ayahs || [];
+    const btn    = document.getElementById("simRunBtn");
+    const status = document.getElementById("simStatus");
+    const term   = document.getElementById("simTerminal");
+    if (!btn || !term) return;
+
+    btn.disabled = true;
+    btn.textContent = "⏳ Running…";
+    term.innerHTML = "";
+
+    // reset rows
+    ayahs.forEach(a => {
+      const row  = document.getElementById(`simrow-${a.ayah}`);
+      const txt  = document.getElementById(`simtext-${a.ayah}`);
+      const meta = document.getElementById(`simmeta-${a.ayah}`);
+      const bar  = document.getElementById(`simbar-${a.ayah}`);
+      if (row)  row.classList.remove("revealed");
+      if (txt)  txt.textContent = "";
+      if (meta) meta.textContent = "";
+      if (bar)  { bar.style.width = "0"; }
+    });
+
+    function log(text, cls = "") {
+      const el = document.createElement("div");
+      el.className = "sim-log-line " + cls;
+      const ts = new Date().toISOString().slice(11, 19);
+      el.textContent = `[${ts}]  ${text}`;
+      term.appendChild(el);
+      term.scrollTop = term.scrollHeight;
+    }
+
+    let t = 0;
+    const after = ms => { t += ms; return t; };
+
+    // boot sequence
+    setTimeout(() => log("WhisperX v3.1.0  model: tiny  device: cpu", "sim-log-head"), after(0));
+    setTimeout(() => log(`surah : ${currentSurah.name_english} (${currentSurah.surah})`, "sim-log-dim"), after(320));
+    setTimeout(() => log(`audio : ${currentSurah.source_audio_url || currentSurah.audio_url || "mp3quran.net"}`, "sim-log-dim"), after(260));
+    setTimeout(() => log("loading wav2vec2-base (ar) phoneme aligner…", "sim-log-dim"), after(380));
+    setTimeout(() => log(`segmenting into ${ayahs.length} canonical ayahs…`, "sim-log-dim"), after(560));
+    setTimeout(() => log("─".repeat(50), "sim-log-dim"), after(280));
+
+    // per-ayah sequence
+    ayahs.forEach((a, i) => {
+      const conf    = a.confidence || 0;
+      const confPct = (conf * 100).toFixed(1);
+      const dur     = a.end_ms - a.start_ms;
+      const procMs  = 260 + Math.floor(Math.random() * 380);
+
+      setTimeout(() => {
+        log(`aligning  ${i+1}/${ayahs.length}  [${(a.start_ms/1000).toFixed(3)}s …]`, "sim-log-busy");
+        if (status) status.textContent = `Aligning ayah ${i+1} of ${ayahs.length}…`;
+      }, after(procMs));
+
+      setTimeout(() => {
+        const row  = document.getElementById(`simrow-${a.ayah}`);
+        const txt  = document.getElementById(`simtext-${a.ayah}`);
+        const meta = document.getElementById(`simmeta-${a.ayah}`);
+        const bar  = document.getElementById(`simbar-${a.ayah}`);
+        if (row)  { row.classList.add("revealed"); row.scrollIntoView({ behavior: "smooth", block: "nearest" }); }
+        if (txt)  txt.textContent = a.text_uthmani || "";
+        if (meta) meta.textContent = `${(a.start_ms/1000).toFixed(3)}s → ${(a.end_ms/1000).toFixed(3)}s  ·  ${dur}ms`;
+        if (bar)  { bar.style.width = `${conf * 100}%`; bar.style.background = conf >= 0.45 ? "#4ade80" : "#fb923c"; }
+        const pad = String(i+1).padStart(2, " ");
+        log(`✓  ayah ${pad}  ${(a.start_ms/1000).toFixed(3)}s → ${(a.end_ms/1000).toFixed(3)}s  conf: ${confPct}%`, "sim-log-ok");
+      }, after(200));
+    });
+
+    // footer
+    setTimeout(() => log("─".repeat(50), "sim-log-dim"), after(300));
+    setTimeout(() => log(`✓  ${ayahs.length} ayahs aligned`, "sim-log-head"), after(180));
+    setTimeout(() => log("uploading to Azure AI Search (ar.microsoft)…", "sim-log-dim"), after(320));
+    setTimeout(() => {
+      log(`✓  ${ayahs.length} documents indexed`, "sim-log-ok");
+      if (btn)    { btn.disabled = false; btn.textContent = "↺ Run again"; }
+      if (status) status.textContent = `✓ ${ayahs.length} ayahs aligned and indexed into Azure AI Search`;
+    }, after(550));
   }
 
   // ── event wiring ──
