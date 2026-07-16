@@ -672,6 +672,8 @@
     if (!currentSurah) return;
     const ayahs   = currentSurah.ayahs || [];
     const totalMs = currentSurah.audio_duration_ms || 0;
+    const audioUrl = currentSurah.source_audio_url || currentSurah.audio_url
+                     || (ayahs[0] && ayahs[0].audio_url) || "";
 
     const slots = ayahs.map(a => `
       <div class="sim-ayah-row" id="simrow-${a.ayah}">
@@ -690,8 +692,12 @@
           ▶ Run forced alignment
         </button>
         <span id="simStatus" style="font-size:0.82rem;color:#64748b">
-          Simulate the WhisperX pipeline discovering timestamps in real time
+          Boot sequence runs, then audio plays — each ayah revealed at its real timestamp
         </span>
+        ${audioUrl
+          ? `<audio id="simPlayer" controls src="${audioUrl}" preload="auto"
+               style="width:100%;margin-top:0.5rem;border-radius:6px"></audio>`
+          : `<div class="audio-unavailable" style="margin-top:0.5rem">Audio URL not available.</div>`}
       </div>
       <div class="sim-layout">
         <div class="card" style="padding:0;overflow:hidden">
@@ -701,7 +707,7 @@
           <div class="karaoke-scroll" id="simAyahList">${slots}</div>
         </div>
         <div class="sim-terminal" id="simTerminal">
-          <span style="color:#334155;font-style:italic">Press ▶ to simulate forced alignment…</span>
+          <span style="color:#334155;font-style:italic">Press ▶ to run the alignment simulation…</span>
         </div>
       </div>`;
   }
@@ -711,13 +717,22 @@
     const btn    = document.getElementById("simRunBtn");
     const status = document.getElementById("simStatus");
     const term   = document.getElementById("simTerminal");
+    const player = document.getElementById("simPlayer");
     if (!btn || !term) return;
 
     btn.disabled = true;
-    btn.textContent = "⏳ Running…";
+    btn.textContent = "⏳ Loading…";
     term.innerHTML = "";
 
-    // reset rows
+    // Clean up any previous listeners stored on player
+    if (player) {
+      if (player._simOnTime) player.removeEventListener("timeupdate", player._simOnTime);
+      if (player._simOnEnd)  player.removeEventListener("ended",      player._simOnEnd);
+      player.pause();
+      player.currentTime = 0;
+    }
+
+    // Reset ayah rows
     ayahs.forEach(a => {
       const row  = document.getElementById(`simrow-${a.ayah}`);
       const txt  = document.getElementById(`simtext-${a.ayah}`);
@@ -726,7 +741,7 @@
       if (row)  row.classList.remove("revealed");
       if (txt)  txt.textContent = "";
       if (meta) meta.textContent = "";
-      if (bar)  { bar.style.width = "0"; }
+      if (bar)  bar.style.width = "0";
     });
 
     function log(text, cls = "") {
@@ -738,52 +753,79 @@
       term.scrollTop = term.scrollHeight;
     }
 
+    function revealAyah(a) {
+      const conf    = a.confidence || 0;
+      const confPct = (conf * 100).toFixed(1);
+      const dur     = a.end_ms - a.start_ms;
+      const row  = document.getElementById(`simrow-${a.ayah}`);
+      const txt  = document.getElementById(`simtext-${a.ayah}`);
+      const meta = document.getElementById(`simmeta-${a.ayah}`);
+      const bar  = document.getElementById(`simbar-${a.ayah}`);
+      if (row)  { row.classList.add("revealed"); row.scrollIntoView({ behavior: "smooth", block: "nearest" }); }
+      if (txt)  txt.textContent = a.text_uthmani || "";
+      if (meta) meta.textContent = `${(a.start_ms/1000).toFixed(3)}s → ${(a.end_ms/1000).toFixed(3)}s  ·  ${dur}ms`;
+      if (bar)  { bar.style.width = `${conf * 100}%`; bar.style.background = conf >= 0.45 ? "#4ade80" : "#fb923c"; }
+      const pad = String(a.ayah).padStart(2, " ");
+      log(`✓  ayah ${pad}  ${(a.start_ms/1000).toFixed(3)}s → ${(a.end_ms/1000).toFixed(3)}s  conf: ${confPct}%`, "sim-log-ok");
+      if (status) status.textContent = `Aligned ayah ${a.ayah} of ${ayahs.length}…`;
+    }
+
     let t = 0;
     const after = ms => { t += ms; return t; };
 
-    // boot sequence
+    // Boot sequence — then audio plays
     setTimeout(() => log("WhisperX v3.1.0  model: tiny  device: cpu", "sim-log-head"), after(0));
     setTimeout(() => log(`surah : ${currentSurah.name_english} (${currentSurah.surah})`, "sim-log-dim"), after(320));
     setTimeout(() => log(`audio : ${currentSurah.source_audio_url || currentSurah.audio_url || "mp3quran.net"}`, "sim-log-dim"), after(260));
     setTimeout(() => log("loading wav2vec2-base (ar) phoneme aligner…", "sim-log-dim"), after(380));
     setTimeout(() => log(`segmenting into ${ayahs.length} canonical ayahs…`, "sim-log-dim"), after(560));
     setTimeout(() => log("─".repeat(50), "sim-log-dim"), after(280));
-
-    // per-ayah sequence
-    ayahs.forEach((a, i) => {
-      const conf    = a.confidence || 0;
-      const confPct = (conf * 100).toFixed(1);
-      const dur     = a.end_ms - a.start_ms;
-      const procMs  = 260 + Math.floor(Math.random() * 380);
-
-      setTimeout(() => {
-        log(`aligning  ${i+1}/${ayahs.length}  [${(a.start_ms/1000).toFixed(3)}s …]`, "sim-log-busy");
-        if (status) status.textContent = `Aligning ayah ${i+1} of ${ayahs.length}…`;
-      }, after(procMs));
-
-      setTimeout(() => {
-        const row  = document.getElementById(`simrow-${a.ayah}`);
-        const txt  = document.getElementById(`simtext-${a.ayah}`);
-        const meta = document.getElementById(`simmeta-${a.ayah}`);
-        const bar  = document.getElementById(`simbar-${a.ayah}`);
-        if (row)  { row.classList.add("revealed"); row.scrollIntoView({ behavior: "smooth", block: "nearest" }); }
-        if (txt)  txt.textContent = a.text_uthmani || "";
-        if (meta) meta.textContent = `${(a.start_ms/1000).toFixed(3)}s → ${(a.end_ms/1000).toFixed(3)}s  ·  ${dur}ms`;
-        if (bar)  { bar.style.width = `${conf * 100}%`; bar.style.background = conf >= 0.45 ? "#4ade80" : "#fb923c"; }
-        const pad = String(i+1).padStart(2, " ");
-        log(`✓  ayah ${pad}  ${(a.start_ms/1000).toFixed(3)}s → ${(a.end_ms/1000).toFixed(3)}s  conf: ${confPct}%`, "sim-log-ok");
-      }, after(200));
-    });
-
-    // footer
-    setTimeout(() => log("─".repeat(50), "sim-log-dim"), after(300));
-    setTimeout(() => log(`✓  ${ayahs.length} ayahs aligned`, "sim-log-head"), after(180));
-    setTimeout(() => log("uploading to Azure AI Search (ar.microsoft)…", "sim-log-dim"), after(320));
     setTimeout(() => {
-      log(`✓  ${ayahs.length} documents indexed`, "sim-log-ok");
-      if (btn)    { btn.disabled = false; btn.textContent = "↺ Run again"; }
-      if (status) status.textContent = `✓ ${ayahs.length} ayahs aligned and indexed into Azure AI Search`;
-    }, after(550));
+      log("running forced alignment — audio playing…", "sim-log-head");
+      btn.textContent = "⏸ Playing…";
+      if (status) status.textContent = "Audio playing — ayahs revealed at their real timestamps…";
+      if (player) player.play().catch(() => {});
+    }, after(300));
+
+    // timeupdate: reveal each ayah when audio reaches its start_ms
+    if (player) {
+      const revealed = new Set();
+
+      const onTime = () => {
+        const ms = player.currentTime * 1000;
+        for (const a of ayahs) {
+          if (!revealed.has(a.ayah) && ms >= a.start_ms) {
+            revealed.add(a.ayah);
+            revealAyah(a);
+          }
+        }
+      };
+
+      const onEnd = () => {
+        player.removeEventListener("timeupdate", onTime);
+        player.removeEventListener("ended",      onEnd);
+        log("─".repeat(50), "sim-log-dim");
+        setTimeout(() => log(`✓  ${ayahs.length} ayahs aligned`, "sim-log-head"), 200);
+        setTimeout(() => log("uploading to Azure AI Search (ar.microsoft)…", "sim-log-dim"), 500);
+        setTimeout(() => {
+          log(`✓  ${ayahs.length} documents indexed`, "sim-log-ok");
+          if (btn)    { btn.disabled = false; btn.textContent = "↺ Run again"; }
+          if (status) status.textContent = `✓ ${ayahs.length} ayahs aligned and indexed into Azure AI Search`;
+        }, 900);
+      };
+
+      player._simOnTime = onTime;
+      player._simOnEnd  = onEnd;
+      player.addEventListener("timeupdate", onTime);
+      player.addEventListener("ended",      onEnd);
+    } else {
+      // No audio available — fall back to timed reveals
+      ayahs.forEach((a, i) => {
+        const delay = 400 + i * 600;
+        setTimeout(() => revealAyah(a), t + delay);
+      });
+      setTimeout(() => { if (btn) { btn.disabled = false; btn.textContent = "↺ Run again"; } }, t + ayahs.length * 600 + 800);
+    }
   }
 
   // ── event wiring ──
