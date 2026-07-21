@@ -180,6 +180,95 @@ def api_search_status():
     return jsonify({"configured": bool(SEARCH_ENDPOINT and SEARCH_KEY)})
 
 
+@app.route("/api/demo/content-understanding/<int:surah_num>")
+def demo_content_understanding(surah_num: int):
+    """Simulated Azure AI Content Understanding response built from alignment data."""
+    indices = load_available_indices()
+    info = indices.get(surah_num)
+    if not info:
+        abort(404)
+    data = load_surah_data(info["path"])
+    if not data:
+        abort(500)
+
+    ayahs = data.get("ayahs", [])
+
+    _meta = {
+        1: {
+            "category": "Opening supplication (Al-Fatihah)",
+            "topics": ["Opening prayer", "Praise of God", "Divine guidance", "Supplication"],
+            "themes": ["Divine attributes", "Pure monotheism", "Path of righteousness"],
+            "sentiment": "reverent",
+        },
+        112: {
+            "category": "Declaration of monotheism (Al-Ikhlas)",
+            "topics": ["Divine unity", "Pure monotheism", "Negation of likeness"],
+            "themes": ["Tawhid", "Incomparability of God", "Eternal nature"],
+            "sentiment": "declarative",
+        },
+        114: {
+            "category": "Seeking divine protection (An-Nas)",
+            "topics": ["Seeking refuge", "Protection from evil", "Whispering devil"],
+            "themes": ["Spiritual protection", "Divine refuge", "Human vulnerability"],
+            "sentiment": "protective",
+        },
+    }
+    meta = _meta.get(surah_num, {
+        "category": "Quranic recitation",
+        "topics": ["Islamic scripture", "Arabic recitation"],
+        "themes": ["Quranic text"],
+        "sentiment": "reverent",
+    })
+
+    total_ms = data.get("audio_duration_ms", 0)
+    avg_conf = sum(a.get("confidence", 0) for a in ayahs) / max(len(ayahs), 1)
+
+    segments = [
+        {
+            "startTimeMs": a["start_ms"],
+            "endTimeMs":   a["end_ms"],
+            "transcript":  a.get("text_uthmani", ""),
+            "confidence":  round(a.get("confidence", 0.0), 3),
+            "fields": {
+                "language":        {"valueString": "ar-SA",                    "confidence": 0.999},
+                "script":          {"valueString": "Arabic — Uthmani script",  "confidence": 0.990},
+                "recitationStyle": {"valueString": "Tajweed (Hafs an Asim)",   "confidence": 0.940},
+                "speakerEmotion":  {"valueString": meta["sentiment"],           "confidence": 0.880},
+                "ayahIndex":       {"valueInteger": a["ayah"]},
+                "durationMs":      {"valueInteger": a["end_ms"] - a["start_ms"]},
+            },
+        }
+        for a in ayahs
+    ]
+
+    return jsonify({
+        "service":          "Azure AI Content Understanding",
+        "analyzerId":       "quran-audio-v1",
+        "status":           "Succeeded",
+        "processingTimeMs": int(total_ms * 0.18 + 1200),
+        "result": {
+            "contents": segments,
+            "documentFields": {
+                "language":          {"valueString": "ar-SA",          "confidence": 0.999},
+                "mediaType":         {"valueString": "audio/mpeg"},
+                "contentCategory":   {"valueString": meta["category"]},
+                "topics":            {"valueArray": [{"valueString": t} for t in meta["topics"]]},
+                "themes":            {"valueArray": [{"valueString": t} for t in meta["themes"]]},
+                "overallSentiment":  {"valueString": meta["sentiment"]},
+                "totalSegments":     {"valueInteger": len(ayahs)},
+                "averageConfidence": {"valueNumber": round(avg_conf, 3)},
+                "durationMs":        {"valueInteger": total_ms},
+                "reciter":           {"valueString": data.get("reciter", "Unknown")},
+                "surahName":         {"valueString": data.get("name_english", "")},
+                "arabicName":        {"valueString": data.get("name_arabic", "")},
+            },
+        },
+        "source_audio": data.get("source_audio_url", ""),
+        "surah":        data.get("surah"),
+        "name_english": data.get("name_english"),
+    })
+
+
 # ---------------------------------------------------------------------------
 
 if __name__ == "__main__":

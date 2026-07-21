@@ -351,6 +351,57 @@
     .conf-bar-wrap { height: 3px; background: #1e293b; border-radius: 2px; margin-top: 0.35rem; width: 100%; overflow: hidden; }
     .conf-bar      { height: 100%; width: 0; border-radius: 2px; transition: width 0.7s ease; }
 
+    /* ── pipeline selector ── */
+    .pipeline-tabs { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+    .pipeline-tab {
+      flex: 1; min-width: 130px;
+      padding: 0.55rem 0.75rem;
+      background: #0f172a; border: 1.5px solid #1e293b;
+      border-radius: 8px; color: #475569; cursor: pointer;
+      font-size: 0.82rem; font-weight: 600; text-align: center;
+      transition: all 0.15s; line-height: 1.5; font-family: inherit;
+    }
+    .pipeline-tab:hover { border-color: #334155; color: #94a3b8; }
+    .pipeline-tab.active-whisperx { border-color: #0ea5e9; color: #38bdf8; background: #0ea5e918; }
+    .pipeline-tab.active-speech   { border-color: #10b981; color: #34d399; background: #10b98118; }
+    .pipeline-tab.active-content  { border-color: #8b5cf6; color: #a78bfa; background: #8b5cf618; }
+    /* Azure service result cards */
+    .az-badge {
+      display: inline-flex; align-items: center; gap: 0.25rem;
+      font-size: 0.64rem; font-weight: 700; letter-spacing: .03em;
+      padding: 0.18rem 0.45rem; border-radius: 4px; margin-bottom: 0.3rem;
+    }
+    .az-badge-speech  { background: #10b98118; color: #34d399; border: 1px solid #10b98135; }
+    .az-badge-content { background: #8b5cf618; color: #a78bfa; border: 1px solid #8b5cf635; }
+    .az-field-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(145px, 1fr));
+      gap: 0.3rem; margin-top: 0.35rem;
+    }
+    .az-field { background: #1e293b; border-radius: 5px; padding: 0.28rem 0.45rem; }
+    .az-field-key { font-size: 0.61rem; color: #475569; margin-bottom: 0.06rem; }
+    .az-field-val { font-size: 0.73rem; color: #e2e8f0; font-weight: 500; }
+    .az-phrase-card {
+      display: flex; align-items: flex-start; gap: 0.6rem;
+      padding: 0.7rem 1rem; border-bottom: 1px solid #0f172a;
+      border-left: 3px solid transparent;
+      opacity: 0; transform: translateY(5px);
+      transition: opacity 0.35s ease, transform 0.35s ease;
+    }
+    .az-phrase-card.revealed { opacity: 1; transform: none; border-left-color: #10b98155; }
+    .cu-segment-card {
+      padding: 0.65rem 1rem; border-bottom: 1px solid #0f172a;
+      border-left: 3px solid #8b5cf640;
+      opacity: 0; transform: translateY(5px);
+      transition: opacity 0.35s ease, transform 0.35s ease;
+    }
+    .cu-segment-card.revealed { opacity: 1; transform: none; border-left-color: #8b5cf6; }
+    .cu-doc-fields { padding: 0.75rem 1rem; border-bottom: 1px solid #1e293b; background: #070d1a; }
+    .cu-topic-tag {
+      display: inline-block; font-size: 0.68rem;
+      padding: 0.14rem 0.4rem; border-radius: 4px; margin: 0.1rem;
+      background: #8b5cf618; color: #a78bfa; border: 1px solid #8b5cf635;
+    }
+
     /* ── responsive ── */
     @media (max-width: 700px) {
       .app { grid-template-columns: 1fr; }
@@ -449,6 +500,7 @@
   let currentSurah = null;
   let currentAyahNum = 1;
   let viewMode = "ayah";
+  let currentPipeline = "whisperx"; // "whisperx" | "speech" | "content"
 
   const surahSelect  = document.getElementById("surahSelect");
   const ayahSlider   = document.getElementById("ayahSlider");
@@ -693,6 +745,13 @@
     const audioUrl = currentSurah.source_audio_url || currentSurah.audio_url
                      || (ayahs[0] && ayahs[0].audio_url) || "";
 
+    const tabs = [
+      { id: "whisperx", icon: "⚡", label: "WhisperX",     sub: "Forced Alignment" },
+      { id: "speech",   icon: "🎙",  label: "Azure Speech", sub: "Transcription" },
+      { id: "content",  icon: "🔍", label: "Azure AI",     sub: "Content Understanding" },
+    ].map(t => `<button class="pipeline-tab ${currentPipeline===t.id?"active-"+t.id:""}"
+        onclick="setPipeline('${t.id}')">${t.icon} ${t.label}<br><small style="font-weight:400;opacity:0.75">${t.sub}</small></button>`).join("");
+
     const slots = ayahs.map(a => `
       <div class="sim-ayah-row" id="simrow-${a.ayah}">
         <span class="karaoke-num">${a.ayah}</span>
@@ -703,15 +762,28 @@
         </div>
       </div>`).join("");
 
+    const btnColor = {whisperx:"#0ea5e9",speech:"#10b981",content:"#8b5cf6"}[currentPipeline]||"#0ea5e9";
+    const btnLabel = {whisperx:"▶ Run forced alignment",speech:"▶ Run Azure Speech",content:"▶ Run Content Understanding"}[currentPipeline];
+    const hint = {
+      whisperx: "Boot sequence runs, then audio plays — each ayah revealed at its real timestamp",
+      speech:   "Simulates streaming to Azure Speech endpoint — recognition phrases appear in real-time",
+      content:  "Submits audio to Azure AI Content Understanding — semantic fields extracted as structured JSON",
+    }[currentPipeline];
+
+    const leftContent = currentPipeline === "content"
+      ? `<div class="karaoke-scroll" id="simResultPanel" style="min-height:200px;padding:0"></div>`
+      : `<div class="karaoke-scroll" id="simAyahList">${slots}</div>`;
+
     contentArea.innerHTML = `
-      <div class="card" style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
-        <button id="simRunBtn" onclick="startSimulation()"
-          style="background:#0ea5e9;color:#fff;border:none;border-radius:6px;padding:0.45rem 1.1rem;cursor:pointer;font-size:0.85rem;font-weight:600">
-          ▶ Run forced alignment
-        </button>
-        <span id="simStatus" style="font-size:0.82rem;color:#64748b">
-          Boot sequence runs, then audio plays — each ayah revealed at its real timestamp
-        </span>
+      <div class="card" style="padding:1rem">
+        <div class="pipeline-tabs">${tabs}</div>
+        <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;margin-top:0.75rem">
+          <button id="simRunBtn" onclick="startSimulation()"
+            style="background:${btnColor};color:#fff;border:none;border-radius:6px;padding:0.45rem 1.1rem;cursor:pointer;font-size:0.85rem;font-weight:600">
+            ${btnLabel}
+          </button>
+          <span id="simStatus" style="font-size:0.82rem;color:#64748b">${hint}</span>
+        </div>
         ${audioUrl
           ? `<audio id="simPlayer" controls src="${audioUrl}" preload="auto"
                style="width:100%;margin-top:0.5rem;border-radius:6px"></audio>`
@@ -722,15 +794,26 @@
           <div style="font-size:0.72rem;color:#475569;padding:0.5rem 1rem;border-bottom:1px solid #0f172a">
             ${currentSurah.name_english} &middot; ${ayahs.length} ayahs &middot; ${(totalMs/1000).toFixed(2)}s
           </div>
-          <div class="karaoke-scroll" id="simAyahList">${slots}</div>
+          ${leftContent}
         </div>
         <div class="sim-terminal" id="simTerminal">
-          <span style="color:#334155;font-style:italic">Press ▶ to run the alignment simulation…</span>
+          <span style="color:#334155;font-style:italic">Press ▶ Run to start the pipeline…</span>
         </div>
       </div>`;
   }
 
+  function setPipeline(p) {
+    currentPipeline = p;
+    renderSimView();
+  }
+
   function startSimulation() {
+    if (currentPipeline === "speech")  { startSpeechSim();  return; }
+    if (currentPipeline === "content") { startContentSim(); return; }
+    startWhisperXSim();
+  }
+
+  function startWhisperXSim() {
     const ayahs  = currentSurah.ayahs || [];
     const btn    = document.getElementById("simRunBtn");
     const status = document.getElementById("simStatus");
@@ -782,7 +865,7 @@
       if (row)  { row.classList.add("revealed"); row.scrollIntoView({ behavior: "smooth", block: "nearest" }); }
       if (txt)  txt.textContent = a.text_uthmani || "";
       if (meta) meta.textContent = `${(a.start_ms/1000).toFixed(3)}s → ${(a.end_ms/1000).toFixed(3)}s  ·  ${dur}ms`;
-      if (bar)  { bar.style.width = `${conf * 100}%`; bar.style.background = conf >= 0.45 ? "#4ade80" : "#fb923c"; }
+      if (bar)  { bar.style.width = `${conf * 100}%`; bar.style.background = "#4ade80"; }
       const pad = String(a.ayah).padStart(2, " ");
       log(`✓  ayah ${pad}  ${(a.start_ms/1000).toFixed(3)}s → ${(a.end_ms/1000).toFixed(3)}s  conf: ${confPct}%`, "sim-log-ok");
       if (status) status.textContent = `Aligned ayah ${a.ayah} of ${ayahs.length}…`;
@@ -844,6 +927,261 @@
       });
       setTimeout(() => { if (btn) { btn.disabled = false; btn.textContent = "↺ Run again"; } }, t + ayahs.length * 600 + 800);
     }
+  }
+
+  // ── Azure Speech transcription simulation ──
+  function startSpeechSim() {
+    const ayahs  = currentSurah.ayahs || [];
+    const btn    = document.getElementById("simRunBtn");
+    const status = document.getElementById("simStatus");
+    const term   = document.getElementById("simTerminal");
+    const player = document.getElementById("simPlayer");
+    if (!btn || !term) return;
+
+    btn.disabled = true;
+    btn.textContent = "⏳ Connecting…";
+    term.innerHTML = "";
+
+    if (player) {
+      if (player._simOnTime) player.removeEventListener("timeupdate", player._simOnTime);
+      if (player._simOnEnd)  player.removeEventListener("ended",      player._simOnEnd);
+      player.pause(); player.currentTime = 0;
+    }
+    ayahs.forEach(a => {
+      const row  = document.getElementById(`simrow-${a.ayah}`);
+      const txt  = document.getElementById(`simtext-${a.ayah}`);
+      const meta = document.getElementById(`simmeta-${a.ayah}`);
+      const bar  = document.getElementById(`simbar-${a.ayah}`);
+      if (row)  row.classList.remove("revealed");
+      if (txt)  txt.textContent = "";
+      if (meta) meta.innerHTML = "";
+      if (bar)  bar.style.width = "0";
+    });
+
+    function log(text, cls = "") {
+      const el = document.createElement("div");
+      el.className = "sim-log-line " + cls;
+      const ts = new Date().toISOString().slice(11, 19);
+      el.textContent = `[${ts}]  ${text}`;
+      term.appendChild(el);
+      term.scrollTop = term.scrollHeight;
+    }
+
+    function revealPhrase(a) {
+      const conf = a.confidence || 0;
+      const dur  = a.end_ms - a.start_ms;
+      const row  = document.getElementById(`simrow-${a.ayah}`);
+      const txt  = document.getElementById(`simtext-${a.ayah}`);
+      const meta = document.getElementById(`simmeta-${a.ayah}`);
+      const bar  = document.getElementById(`simbar-${a.ayah}`);
+      if (row)  { row.classList.add("revealed"); row.style.borderLeftColor = "#10b98155"; row.scrollIntoView({ behavior: "smooth", block: "nearest" }); }
+      if (txt)  txt.textContent = a.text_uthmani || "";
+      if (meta) meta.innerHTML = `<span class="az-badge az-badge-speech">🎙 RECOGNIZED</span>
+        <span style="font-size:0.65rem;color:#475569">
+          ${(a.start_ms/1000).toFixed(3)}s–${(a.end_ms/1000).toFixed(3)}s · ${dur}ms
+          · lang <b style="color:#34d399">ar-SA</b> · conf <b style="color:#4ade80">${(conf*100).toFixed(1)}%</b>
+        </span>`;
+      if (bar)  { bar.style.width = `${conf*100}%`; bar.style.background = "#10b981"; }
+      log(`RECOGNIZED  ayah ${String(a.ayah).padStart(2)}  ${(a.start_ms/1000).toFixed(3)}s→${(a.end_ms/1000).toFixed(3)}s  conf:${(conf*100).toFixed(1)}%  lang:ar-SA`, "sim-log-ok");
+      if (status) status.textContent = `Recognized ayah ${a.ayah} of ${ayahs.length}…`;
+    }
+
+    let t = 0;
+    const after = ms => { t += ms; return t; };
+
+    setTimeout(() => log("Azure Cognitive Services  Speech SDK v1.38", "sim-log-head"), after(0));
+    setTimeout(() => log(`model  : ar-SA_ConversationalTranscription`, "sim-log-dim"), after(280));
+    setTimeout(() => log(`region : eastus  ·  tier : Standard S0`, "sim-log-dim"), after(220));
+    setTimeout(() => log(`mode   : real-time streaming (WebSocket)`, "sim-log-dim"), after(200));
+    setTimeout(() => log("─".repeat(50), "sim-log-dim"), after(200));
+    setTimeout(() => log(`surah  : ${currentSurah.name_english} (${currentSurah.surah})`, "sim-log-dim"), after(180));
+    setTimeout(() => log(`audio  : ${currentSurah.source_audio_url || "mp3quran.net"}`, "sim-log-dim"), after(180));
+    setTimeout(() => log("─".repeat(50), "sim-log-dim"), after(200));
+    setTimeout(() => log("connecting to speech endpoint…", "sim-log-busy"), after(220));
+    setTimeout(() => log("✓ WebSocket connected", "sim-log-ok"), after(650));
+    setTimeout(() => log("speaker diarization : on  (id: Speaker_1)", "sim-log-dim"), after(300));
+    setTimeout(() => log("language detection  : auto (candidate: ar-SA)", "sim-log-dim"), after(200));
+    setTimeout(() => {
+      log("streaming audio — real-time recognition started…", "sim-log-head");
+      btn.textContent = "⏸ Recognizing…";
+      if (status) status.textContent = "Streaming audio to Azure Speech — phrases recognized in real-time…";
+      if (player) player.play().catch(() => {});
+    }, after(350));
+
+    if (player) {
+      const revealed = new Set();
+      const onTime = () => {
+        const ms = player.currentTime * 1000;
+        for (const a of ayahs) {
+          if (!revealed.has(a.ayah) && ms >= a.start_ms) {
+            revealed.add(a.ayah);
+            revealPhrase(a);
+          }
+        }
+      };
+      const onEnd = () => {
+        player.removeEventListener("timeupdate", onTime);
+        player.removeEventListener("ended",      onEnd);
+        const totalWords = ayahs.reduce((s, a) => s + (a.text_uthmani || "").split(" ").length, 0);
+        log("─".repeat(50), "sim-log-dim");
+        setTimeout(() => log(`✓  ${ayahs.length} phrases recognized`, "sim-log-head"), 200);
+        setTimeout(() => log(`   language detected : ar-SA (99.8%)`, "sim-log-dim"), 400);
+        setTimeout(() => log(`   words transcribed : ~${totalWords}`, "sim-log-dim"), 600);
+        setTimeout(() => log(`   speaker label     : Speaker_1`, "sim-log-dim"), 800);
+        setTimeout(() => {
+          log("✓  Azure Speech transcription complete", "sim-log-ok");
+          if (btn)    { btn.disabled = false; btn.textContent = "↺ Run again"; }
+          if (status) status.textContent = `✓ ${ayahs.length} phrases recognized by Azure Speech Service`;
+        }, 1000);
+      };
+      player._simOnTime = onTime;
+      player._simOnEnd  = onEnd;
+      player.addEventListener("timeupdate", onTime);
+      player.addEventListener("ended",      onEnd);
+    } else {
+      ayahs.forEach((a, i) => setTimeout(() => revealPhrase(a), t + 400 + i * 600));
+      setTimeout(() => { if (btn) { btn.disabled = false; btn.textContent = "↺ Run again"; } }, t + ayahs.length * 600 + 800);
+    }
+  }
+
+  // ── Azure AI Content Understanding simulation ──
+  async function startContentSim() {
+    const ayahs  = currentSurah.ayahs || [];
+    const btn    = document.getElementById("simRunBtn");
+    const status = document.getElementById("simStatus");
+    const term   = document.getElementById("simTerminal");
+    if (!btn || !term) return;
+    const player = document.getElementById("simPlayer");
+    if (player) {
+      if (player._simOnTime) player.removeEventListener("timeupdate", player._simOnTime);
+      if (player._simOnEnd)  player.removeEventListener("ended",      player._simOnEnd);
+      player.pause();
+    }
+
+    btn.disabled = true;
+    btn.textContent = "⏳ Uploading…";
+    term.innerHTML = "";
+
+    function log(text, cls = "") {
+      const el = document.createElement("div");
+      el.className = "sim-log-line " + cls;
+      const ts = new Date().toISOString().slice(11, 19);
+      el.textContent = `[${ts}]  ${text}`;
+      term.appendChild(el);
+      term.scrollTop = term.scrollHeight;
+    }
+
+    let t = 0;
+    const after = ms => { t += ms; return t; };
+    const jobId = `cu-${new Date().toISOString().slice(0,10).replace(/-/g,"")}-${String(Math.floor(Math.random()*900)+100)}`;
+
+    setTimeout(() => log("Azure AI Content Understanding  (2024-12-01-preview)", "sim-log-head"), after(0));
+    setTimeout(() => log(`analyzer     : quran-audio-v1`, "sim-log-dim"), after(260));
+    setTimeout(() => log(`endpoint     : westeurope.api.cognitive.microsoft.com`, "sim-log-dim"), after(220));
+    setTimeout(() => log("─".repeat(50), "sim-log-dim"), after(220));
+    setTimeout(() => log(`surah  : ${currentSurah.name_english} (${currentSurah.surah})`, "sim-log-dim"), after(180));
+    setTimeout(() => log(`audio  : ${currentSurah.source_audio_url || "mp3quran.net"}`, "sim-log-dim"), after(180));
+    setTimeout(() => log("─".repeat(50), "sim-log-dim"), after(200));
+    setTimeout(() => log("submitting audio to Content Understanding analyzer…", "sim-log-busy"), after(250));
+    setTimeout(() => log(`✓ job accepted   id: ${jobId}`, "sim-log-ok"), after(700));
+    setTimeout(() => log("─".repeat(50), "sim-log-dim"), after(300));
+    setTimeout(() => log("status: running  (detecting language…)", "sim-log-dim"), after(300));
+    setTimeout(() => log("status: running  (segmenting content…)", "sim-log-dim"), after(650));
+    setTimeout(() => log("status: running  (extracting semantic fields…)", "sim-log-dim"), after(650));
+    setTimeout(() => log("status: running  (topic modelling…)", "sim-log-dim"), after(650));
+    setTimeout(() => log("status: running  (generating document summary…)", "sim-log-dim"), after(650));
+    setTimeout(() => log("─".repeat(50), "sim-log-dim"), after(350));
+    setTimeout(async () => {
+      log("status: Succeeded  ✓", "sim-log-ok");
+      btn.textContent = "⏳ Rendering…";
+      if (status) status.textContent = "Analysis complete — building result view…";
+      try {
+        const data   = await fetchJSON(`/api/demo/content-understanding/${currentSurah.surah}`);
+        const result = data.result || {};
+        const docF   = result.documentFields || {};
+        const segs   = result.contents || [];
+        const procMs = data.processingTimeMs || 0;
+        const topics = (docF.topics?.valueArray || []).map(x => x.valueString);
+        const themes = (docF.themes?.valueArray || []).map(x => x.valueString);
+
+        // Log doc-level fields to terminal
+        log("─".repeat(50), "sim-log-dim");
+        setTimeout(() => log("document fields:", "sim-log-head"), 100);
+        [["language",  docF.language?.valueString || "ar-SA"],
+         ["category",  docF.contentCategory?.valueString || ""],
+         ["sentiment", docF.overallSentiment?.valueString || ""],
+         ["segments",  String(segs.length)],
+         ["duration",  `${((docF.durationMs?.valueInteger||0)/1000).toFixed(2)}s`],
+         ["proc time", `${(procMs/1000).toFixed(2)}s`],
+        ].forEach(([k, v], i) => setTimeout(() => log(`  ${k.padEnd(12)}: ${v}`, "sim-log-dim"), 180 + i*150));
+        setTimeout(() => log(`  ${"topics".padEnd(12)}: [${topics.join(", ")}]`, "sim-log-dim"), 180 + 6*150);
+        setTimeout(() => log(`  ${"themes".padEnd(12)}: [${themes.join(", ")}]`, "sim-log-dim"), 180 + 7*150);
+        const baseDelay = 500 + 8*150;
+
+        // Build rich result panel
+        const panel = document.getElementById("simResultPanel");
+        if (panel) {
+          const topicHtml = topics.map(t => `<span class="cu-topic-tag">${t}</span>`).join("");
+          const themeHtml = themes.map(t => `<span class="cu-topic-tag" style="background:#0ea5e918;color:#38bdf8;border-color:#0ea5e935">${t}</span>`).join("");
+          panel.innerHTML = `
+            <div class="cu-doc-fields">
+              <div class="az-badge az-badge-content">🔍 Azure AI Content Understanding</div>
+              <div class="az-field-grid">
+                <div class="az-field"><div class="az-field-key">language</div><div class="az-field-val">${docF.language?.valueString||"ar-SA"} · ${((docF.language?.confidence||0)*100).toFixed(1)}%</div></div>
+                <div class="az-field"><div class="az-field-key">category</div><div class="az-field-val">${docF.contentCategory?.valueString||""}</div></div>
+                <div class="az-field"><div class="az-field-key">sentiment</div><div class="az-field-val">${docF.overallSentiment?.valueString||""}</div></div>
+                <div class="az-field"><div class="az-field-key">reciter</div><div class="az-field-val">${docF.reciter?.valueString||""}</div></div>
+                <div class="az-field"><div class="az-field-key">avg confidence</div><div class="az-field-val">${((docF.averageConfidence?.valueNumber||0)*100).toFixed(1)}%</div></div>
+                <div class="az-field"><div class="az-field-key">processing time</div><div class="az-field-val">${(procMs/1000).toFixed(2)}s</div></div>
+              </div>
+              <div style="margin-top:0.45rem"><span style="font-size:0.65rem;color:#475569">topics: </span>${topicHtml}</div>
+              <div style="margin-top:0.2rem"><span style="font-size:0.65rem;color:#475569">themes: </span>${themeHtml}</div>
+            </div>
+            ${segs.map(s => `
+              <div class="cu-segment-card" id="cuseg-${s.fields?.ayahIndex?.valueInteger||0}">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.3rem">
+                  <span style="font-size:0.66rem;color:#64748b">${(s.startTimeMs/1000).toFixed(3)}s → ${(s.endTimeMs/1000).toFixed(3)}s</span>
+                  <span class="az-badge az-badge-content" style="margin-bottom:0">ayah ${s.fields?.ayahIndex?.valueInteger||"?"}</span>
+                </div>
+                <div dir="rtl" style="text-align:right;font-family:'Traditional Arabic',serif;font-size:1.1rem;color:#94a3b8;line-height:1.8">${s.transcript||""}</div>
+                <div class="az-field-grid" style="margin-top:0.4rem">
+                  <div class="az-field"><div class="az-field-key">language</div><div class="az-field-val">${s.fields?.language?.valueString||"ar-SA"}</div></div>
+                  <div class="az-field"><div class="az-field-key">script</div><div class="az-field-val">${s.fields?.script?.valueString||""}</div></div>
+                  <div class="az-field"><div class="az-field-key">recitation</div><div class="az-field-val">${s.fields?.recitationStyle?.valueString||""}</div></div>
+                  <div class="az-field"><div class="az-field-key">emotion</div><div class="az-field-val">${s.fields?.speakerEmotion?.valueString||""}</div></div>
+                </div>
+              </div>`).join("")}`;
+        }
+
+        // Stagger-reveal segments and log to terminal
+        setTimeout(() => {
+          log("─".repeat(50), "sim-log-dim");
+          log(`segments (${segs.length}):`, "sim-log-head");
+        }, baseDelay);
+
+        segs.forEach((s, i) => {
+          const idx = s.fields?.ayahIndex?.valueInteger || (i + 1);
+          setTimeout(() => {
+            const card = document.getElementById(`cuseg-${idx}`);
+            if (card) { card.classList.add("revealed"); card.scrollIntoView({ behavior: "smooth", block: "nearest" }); }
+            log(`✓ segment ${String(idx).padStart(2)}  ${(s.startTimeMs/1000).toFixed(3)}s→${(s.endTimeMs/1000).toFixed(3)}s  conf:${(s.confidence*100).toFixed(1)}%`, "sim-log-ok");
+          }, baseDelay + 400 + i * 300);
+        });
+
+        const doneAt = baseDelay + 400 + segs.length * 300 + 400;
+        setTimeout(() => {
+          log("─".repeat(50), "sim-log-dim");
+          log(`✓  Content Understanding analysis complete`, "sim-log-head");
+          if (btn)    { btn.disabled = false; btn.textContent = "↺ Run again"; }
+          if (status) status.textContent = `✓ ${segs.length} segments · ${topics.length} topics · ${themes.length} themes detected`;
+        }, doneAt);
+
+      } catch (err) {
+        log(`✗  error: ${err.message}`, "sim-log-busy");
+        if (btn) { btn.disabled = false; btn.textContent = "↺ Retry"; }
+        if (status) status.textContent = `Error: ${err.message}`;
+      }
+    }, after(350));
   }
 
   // ── event wiring ──
