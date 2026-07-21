@@ -58,7 +58,7 @@
     }
   ],
   "metadata": {
-    "generated_at": "2026-07-15T18:23:05.002405Z",
+    "generated_at": "2026-07-21T15:14:38.193831Z",
     "pipeline_version": "0.1.0",
     "text_hash": "3eb53b77e8bd8abc",
     "model_used": "whisperx-tiny",

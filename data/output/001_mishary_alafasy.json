@@ -94,7 +94,7 @@
     }
   ],
   "metadata": {
-    "generated_at": "2026-07-15T18:22:37.238054Z",
+    "generated_at": "2026-07-21T15:14:12.433880Z",
     "pipeline_version": "0.1.0",
     "text_hash": "573abc64bcef6562",
     "model_used": "whisperx-tiny",

@@ -82,7 +82,7 @@
     }
   ],
   "metadata": {
-    "generated_at": "2026-07-15T18:23:50.629800Z",
+    "generated_at": "2026-07-21T15:15:23.451697Z",
     "pipeline_version": "0.1.0",
     "text_hash": "9e87624828b12291",
     "model_used": "whisperx-tiny",
