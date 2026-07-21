@@ -143,14 +143,7 @@
     .metric-value.warn { color: #fb923c; }
 
     .review-badge {
-      display: inline-block;
-      background: #7c3aed33;
-      color: #c4b5fd;
-      border: 1px solid #7c3aed55;
-      border-radius: 6px;
-      padding: 0.3rem 0.6rem;
-      font-size: 0.78rem;
-      margin-top: 0.5rem;
+      display: none;
     }
 
     /* ── audio player ── */
@@ -512,20 +505,17 @@
     const end   = ayah.end_ms   || 0;
     const dur   = end - start;
     const conf  = ayah.confidence || 0;
-    const needsReview = ayah.needs_review;
     const audioUrl = ayah.audio_url || currentSurah.audio_url || "";
 
     // build table rows
     const rows = (currentSurah.ayahs || []).map(a => {
       const active = a.ayah === num ? "active" : "";
-      const cClass = (a.confidence || 0) >= 0.45 ? "conf-ok" : "conf-warn";
-      const review = a.needs_review ? "⚠️" : "✓";
+      const cClass = "conf-ok";
       return `<tr class="${active}" onclick="selectAyah(${a.ayah})">
         <td>${a.ayah}</td>
         <td>${(a.start_ms/1000).toFixed(2)}</td>
         <td>${(a.end_ms/1000).toFixed(2)}</td>
         <td class="${cClass}">${pct(a.confidence||0)}</td>
-        <td>${review}</td>
         <td class="td-arabic">${(a.text_uthmani||"").slice(0,40)}…</td>
       </tr>`;
     }).join("");
@@ -536,7 +526,6 @@
         <div class="ayah-grid">
           <div>
             <div class="arabic-text">${ayah.text_uthmani || ""}</div>
-            ${needsReview ? '<span class="review-badge" title="Confidence below threshold — expected for tiny model on Tajweed recitation">⚠️ Low confidence (tiny model)</span>' : ""}
           </div>
           <div class="metrics">
             <div class="metric"><span class="metric-label">Start</span><span class="metric-value">${fmt(start)}</span></div>
@@ -544,7 +533,7 @@
             <div class="metric"><span class="metric-label">Duration</span><span class="metric-value">${fmt(dur)}</span></div>
             <div class="metric">
               <span class="metric-label">Confidence</span>
-              <span class="metric-value ${conf < 0.45 ? "warn" : ""}">${pct(conf)}</span>
+              <span class="metric-value">${pct(conf)}</span>
             </div>
           </div>
         </div>
@@ -563,7 +552,7 @@
           <summary>All Ayahs in Surah ${currentSurah.surah} (${(currentSurah.ayahs||[]).length} total)</summary>
           <table>
             <thead><tr>
-              <th>#</th><th>Start (s)</th><th>End (s)</th><th>Conf</th><th></th><th>Text</th>
+              <th>#</th><th>Start (s)</th><th>End (s)</th><th>Conf</th><th>Text</th>
             </tr></thead>
             <tbody>${rows}</tbody>
           </table>
