@@ -134,3 +134,21 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
 output AZURE_CONTAINER_REGISTRY_ENDPOINT string = acr.properties.loginServer
 output AZURE_CONTAINER_REGISTRY_NAME string = acr.name
 output SERVICE_WEB_URI string = 'https://${containerApp.properties.configuration.ingress.fqdn}'
+
+// ── Azure AI Services (Speech + Content Understanding) ───────────────────────
+// A single multi-service account covers Azure Speech transcription AND
+// Azure AI Content Understanding (preview) under one endpoint and key.
+resource aiServices 'Microsoft.CognitiveServices/accounts@2023-05-01' = {
+  name: 'cog-${resourceToken}'
+  location: location
+  tags: tags
+  kind: 'AIServices'
+  sku: { name: 'S0' }
+  properties: {
+    publicNetworkAccess: 'Enabled'
+    customSubDomainName: 'cog-${resourceToken}'
+  }
+}
+
+output AZURE_AI_ENDPOINT string = aiServices.properties.endpoint
+output AZURE_SPEECH_REGION string = location

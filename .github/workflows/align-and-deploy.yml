@@ -181,6 +181,31 @@ jobs:
             python -m src.pipeline --surah "$surah" --reciter mishary_alafasy --upload
           done
 
+      - name: Run Azure AI enrichment (Speech + Content Understanding)
+        if: steps.need_align.outputs.run == 'true'
+        env:
+          AZURE_AI_ENDPOINT: ${{ secrets.AZURE_AI_ENDPOINT }}
+          AZURE_AI_KEY:      ${{ secrets.AZURE_AI_KEY }}
+          AZURE_SPEECH_REGION: westeurope
+          OUTPUT_DIR: ./data/output
+          SURAHS: ${{ github.event.inputs.surahs || '1 112 114' }}
+        run: |
+          if [ -z "$AZURE_AI_KEY" ]; then
+            echo "AZURE_AI_KEY not set — skipping Azure AI enrichment (demo will use synthetic data)"
+            exit 0
+          fi
+          echo "── Azure AI Content Understanding ──────────────────────"
+          python scripts/run_azure_cu.py --setup-analyzer || echo "Analyzer setup failed — continuing"
+          for surah in $SURAHS; do
+            python scripts/run_azure_cu.py --surah "$surah" \
+              || echo "CU failed for surah $surah — synthetic fallback will be used"
+          done
+          echo "── Azure Speech Transcription ──────────────────────────"
+          for surah in $SURAHS; do
+            python scripts/run_azure_speech.py --surah "$surah" \
+              || echo "Speech failed for surah $surah — synthetic fallback will be used"
+          done
+
       - name: Commit & push alignment output
         id: push
         env:
@@ -247,7 +272,10 @@ jobs:
             --set-env-vars \
               "AZURE_SEARCH_ENDPOINT=${{ secrets.AZURE_SEARCH_ENDPOINT }}" \
               "AZURE_SEARCH_KEY=${{ secrets.AZURE_SEARCH_KEY }}" \
-              "AZURE_SEARCH_INDEX=quran-ayah-index"
+              "AZURE_SEARCH_INDEX=quran-ayah-index" \
+              "AZURE_AI_ENDPOINT=${{ secrets.AZURE_AI_ENDPOINT }}" \
+              "AZURE_AI_KEY=${{ secrets.AZURE_AI_KEY }}" \
+              "AZURE_SPEECH_REGION=westeurope"
 
       - name: Print live URL
         run: |

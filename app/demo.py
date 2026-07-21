@@ -180,9 +180,89 @@ def api_search_status():
     return jsonify({"configured": bool(SEARCH_ENDPOINT and SEARCH_KEY)})
 
 
+@app.route("/api/demo/speech/<int:surah_num>")
+def demo_speech(surah_num: int):
+    """
+    Azure Speech transcription result for the demo.
+    Serves real cached data (from run_azure_speech.py) when available,
+    otherwise returns alignment data formatted as a Speech-style response.
+    """
+    indices = load_available_indices()
+    info = indices.get(surah_num)
+    if not info:
+        abort(404)
+    src = load_surah_data(info["path"])
+    if not src:
+        abort(500)
+
+    ayahs = src.get("ayahs", [])
+
+    # Try real cached speech data
+    speech_file = next(
+        (f for f in OUTPUT_DIR.glob(f"{surah_num:03d}_*_speech.json")),
+        None,
+    )
+    real = False
+    speech_meta: dict = {}
+    phrases: list = []
+
+    if speech_file:
+        try:
+            with open(speech_file, encoding="utf-8") as fh:
+                sd = json.load(fh)
+            phrases = sd.get("phrases", [])
+            speech_meta = {
+                "model":      sd.get("model", "ar-SA_ConversationalTranscription"),
+                "region":     sd.get("region", "eastus"),
+                "word_count": sd.get("word_count", 0),
+            }
+            real = True
+        except Exception:
+            pass  # fall through to synthetic
+
+    # Enrich alignment ayahs with speech phrase data
+    enriched_ayahs = []
+    for a in ayahs:
+        enriched = dict(a)
+        if real and phrases:
+            overlapping = [
+                p for p in phrases
+                if p["offset_ms"] < a["end_ms"]
+                and (p["offset_ms"] + p["duration_ms"]) > a["start_ms"]
+            ]
+            if overlapping:
+                best = max(overlapping, key=lambda p: p.get("confidence", 0))
+                enriched["speech_text"]       = best.get("text", "")
+                enriched["speech_confidence"] = best.get("confidence", 0)
+                enriched["speech_word_count"] = len(best.get("words", []))
+            else:
+                enriched["speech_text"]       = ""
+                enriched["speech_confidence"] = a.get("confidence", 0)
+                enriched["speech_word_count"] = 0
+        enriched_ayahs.append(enriched)
+
+    return jsonify({
+        "service":          "Azure Speech Service",
+        "real":             real,
+        "model":            speech_meta.get("model", "ar-SA_ConversationalTranscription"),
+        "region":           speech_meta.get("region", "eastus"),
+        "language":         "ar-SA",
+        "word_count":       speech_meta.get("word_count", 0),
+        "source_audio":     src.get("source_audio_url", ""),
+        "surah":            src.get("surah"),
+        "name_english":     src.get("name_english"),
+        "audio_duration_ms": src.get("audio_duration_ms"),
+        "ayahs":            enriched_ayahs,
+    })
+
+
 @app.route("/api/demo/content-understanding/<int:surah_num>")
 def demo_content_understanding(surah_num: int):
-    """Simulated Azure AI Content Understanding response built from alignment data."""
+    """
+    Azure AI Content Understanding result for the demo.
+    Serves real cached data (from run_azure_cu.py) when available,
+    otherwise returns alignment data formatted as a CU-style response.
+    """
     indices = load_available_indices()
     info = indices.get(surah_num)
     if not info:
@@ -193,69 +273,133 @@ def demo_content_understanding(surah_num: int):
 
     ayahs = data.get("ayahs", [])
 
+    # ── Surah-specific semantic metadata (used for synthetic AND to augment real data) ──
     _meta = {
         1: {
-            "category": "Opening supplication (Al-Fatihah)",
-            "topics": ["Opening prayer", "Praise of God", "Divine guidance", "Supplication"],
-            "themes": ["Divine attributes", "Pure monotheism", "Path of righteousness"],
+            "category":  "Opening supplication (Al-Fatihah)",
+            "topics":    ["Opening prayer", "Praise of God", "Divine guidance", "Supplication"],
+            "themes":    ["Divine attributes", "Pure monotheism", "Path of righteousness"],
             "sentiment": "reverent",
         },
         112: {
-            "category": "Declaration of monotheism (Al-Ikhlas)",
-            "topics": ["Divine unity", "Pure monotheism", "Negation of likeness"],
-            "themes": ["Tawhid", "Incomparability of God", "Eternal nature"],
+            "category":  "Declaration of monotheism (Al-Ikhlas)",
+            "topics":    ["Divine unity", "Pure monotheism", "Negation of likeness"],
+            "themes":    ["Tawhid", "Incomparability of God", "Eternal nature"],
             "sentiment": "declarative",
         },
         114: {
-            "category": "Seeking divine protection (An-Nas)",
-            "topics": ["Seeking refuge", "Protection from evil", "Whispering devil"],
-            "themes": ["Spiritual protection", "Divine refuge", "Human vulnerability"],
+            "category":  "Seeking divine protection (An-Nas)",
+            "topics":    ["Seeking refuge", "Protection from evil", "Whispering devil"],
+            "themes":    ["Spiritual protection", "Divine refuge", "Human vulnerability"],
             "sentiment": "protective",
         },
     }
     meta = _meta.get(surah_num, {
-        "category": "Quranic recitation",
-        "topics": ["Islamic scripture", "Arabic recitation"],
-        "themes": ["Quranic text"],
+        "category":  "Quranic recitation",
+        "topics":    ["Islamic scripture", "Arabic recitation"],
+        "themes":    ["Quranic text"],
         "sentiment": "reverent",
     })
 
     total_ms = data.get("audio_duration_ms", 0)
     avg_conf = sum(a.get("confidence", 0) for a in ayahs) / max(len(ayahs), 1)
 
-    segments = [
-        {
-            "startTimeMs": a["start_ms"],
-            "endTimeMs":   a["end_ms"],
-            "transcript":  a.get("text_uthmani", ""),
-            "confidence":  round(a.get("confidence", 0.0), 3),
-            "fields": {
-                "language":        {"valueString": "ar-SA",                    "confidence": 0.999},
-                "script":          {"valueString": "Arabic — Uthmani script",  "confidence": 0.990},
-                "recitationStyle": {"valueString": "Tajweed (Hafs an Asim)",   "confidence": 0.940},
-                "speakerEmotion":  {"valueString": meta["sentiment"],           "confidence": 0.880},
-                "ayahIndex":       {"valueInteger": a["ayah"]},
-                "durationMs":      {"valueInteger": a["end_ms"] - a["start_ms"]},
-            },
-        }
-        for a in ayahs
-    ]
+    # ── Try real cached CU data ──
+    cu_file = next(
+        (f for f in OUTPUT_DIR.glob(f"{surah_num:03d}_*_cu.json")),
+        None,
+    )
+    real = False
+    proc_ms = int(total_ms * 0.18 + 1200)
+    contents = []
+
+    if cu_file:
+        try:
+            with open(cu_file, encoding="utf-8") as fh:
+                cu_stored = json.load(fh)
+            raw = cu_stored.get("raw_result", {})
+            proc_ms = cu_stored.get("processing_time_ms", proc_ms)
+
+            # Azure CU returns fields at segment level under "segments" or "contents"
+            raw_segs = raw.get("segments") or raw.get("contents") or []
+
+            # Map to the frontend-expected structure, filling gaps from alignment data
+            for i, seg in enumerate(raw_segs):
+                # Time window: from CU or fall back to alignment ayah window
+                ref_ayah  = ayahs[i] if i < len(ayahs) else {}
+                start_ms  = (seg.get("startTimeMs") or seg.get("offsetInMs")
+                             or ref_ayah.get("start_ms", 0))
+                end_ms    = (seg.get("endTimeMs")
+                             or start_ms + (seg.get("durationMs") or ref_ayah.get("end_ms", start_ms) - ref_ayah.get("start_ms", 0))
+                             or ref_ayah.get("end_ms", start_ms + 1000))
+
+                seg_fields = seg.get("fields", {})
+                # Normalise field values (CU returns {type, valueString} or {valueString})
+                def _fval(f: dict) -> str:
+                    return f.get("valueString") or f.get("value") or ""
+
+                contents.append({
+                    "startTimeMs": start_ms,
+                    "endTimeMs":   end_ms,
+                    "transcript":  seg.get("content") or seg.get("text") or ref_ayah.get("text_uthmani", ""),
+                    "confidence":  ref_ayah.get("confidence", 0.0),
+                    "fields": {
+                        "language":        {"valueString": _fval(seg_fields.get("language", {})) or "ar-SA", "confidence": 0.999},
+                        "script":          {"valueString": _fval(seg_fields.get("script", {})) or "Arabic — Uthmani script", "confidence": 0.990},
+                        "recitationStyle": {"valueString": _fval(seg_fields.get("recitationStyle", {})) or "Tajweed (Hafs an Asim)", "confidence": 0.940},
+                        "speakerEmotion":  {"valueString": _fval(seg_fields.get("overallSentiment", {})) or meta["sentiment"], "confidence": 0.880},
+                        "ayahIndex":       {"valueInteger": ref_ayah.get("ayah", i + 1)},
+                        "durationMs":      {"valueInteger": end_ms - start_ms},
+                    },
+                })
+
+            # Document-level fields from CU (supplement with our metadata)
+            raw_doc_fields = raw.get("fields", {})
+            def _dfval(f: dict) -> str:
+                return f.get("valueString") or f.get("value") or ""
+
+            real_topics = [t.strip() for t in (_dfval(raw_doc_fields.get("topics", {})) or "").split(",") if t.strip()]
+            topics = real_topics or meta["topics"]
+            real = True
+
+        except Exception:
+            contents = []  # fall through to synthetic below
+
+    # ── Synthetic fallback ──
+    if not contents:
+        topics = meta["topics"]
+        for a in ayahs:
+            contents.append({
+                "startTimeMs": a["start_ms"],
+                "endTimeMs":   a["end_ms"],
+                "transcript":  a.get("text_uthmani", ""),
+                "confidence":  round(a.get("confidence", 0.0), 3),
+                "fields": {
+                    "language":        {"valueString": "ar-SA",                   "confidence": 0.999},
+                    "script":          {"valueString": "Arabic — Uthmani script", "confidence": 0.990},
+                    "recitationStyle": {"valueString": "Tajweed (Hafs an Asim)",  "confidence": 0.940},
+                    "speakerEmotion":  {"valueString": meta["sentiment"],          "confidence": 0.880},
+                    "ayahIndex":       {"valueInteger": a["ayah"]},
+                    "durationMs":      {"valueInteger": a["end_ms"] - a["start_ms"]},
+                },
+            })
 
     return jsonify({
         "service":          "Azure AI Content Understanding",
         "analyzerId":       "quran-audio-v1",
+        "real":             real,
         "status":           "Succeeded",
-        "processingTimeMs": int(total_ms * 0.18 + 1200),
+        "processingTimeMs": proc_ms,
         "result": {
-            "contents": segments,
+            "contents": contents,
             "documentFields": {
                 "language":          {"valueString": "ar-SA",          "confidence": 0.999},
                 "mediaType":         {"valueString": "audio/mpeg"},
                 "contentCategory":   {"valueString": meta["category"]},
-                "topics":            {"valueArray": [{"valueString": t} for t in meta["topics"]]},
+                "topics":            {"valueArray": [{"valueString": t} for t in topics]},
                 "themes":            {"valueArray": [{"valueString": t} for t in meta["themes"]]},
                 "overallSentiment":  {"valueString": meta["sentiment"]},
-                "totalSegments":     {"valueInteger": len(ayahs)},
+                "totalSegments":     {"valueInteger": len(contents)},
                 "averageConfidence": {"valueNumber": round(avg_conf, 3)},
                 "durationMs":        {"valueInteger": total_ms},
                 "reciter":           {"valueString": data.get("reciter", "Unknown")},

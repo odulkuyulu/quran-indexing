@@ -930,8 +930,7 @@
   }
 
   // ── Azure Speech transcription simulation ──
-  function startSpeechSim() {
-    const ayahs  = currentSurah.ayahs || [];
+  async function startSpeechSim() {
     const btn    = document.getElementById("simRunBtn");
     const status = document.getElementById("simStatus");
     const term   = document.getElementById("simTerminal");
@@ -947,6 +946,31 @@
       if (player._simOnEnd)  player.removeEventListener("ended",      player._simOnEnd);
       player.pause(); player.currentTime = 0;
     }
+
+    function log(text, cls = "") {
+      const el = document.createElement("div");
+      el.className = "sim-log-line " + cls;
+      const ts = new Date().toISOString().slice(11, 19);
+      el.textContent = `[${ts}]  ${text}`;
+      term.appendChild(el);
+      term.scrollTop = term.scrollHeight;
+    }
+
+    // Fetch real (or synthetic) speech data from backend
+    let speechData = null;
+    try {
+      speechData = await fetchJSON(`/api/demo/speech/${currentSurah.surah}`);
+    } catch (e) {
+      log(`⚠ could not load speech data: ${e.message}`, "sim-log-busy");
+    }
+
+    const ayahs    = (speechData && speechData.ayahs) || currentSurah.ayahs || [];
+    const isReal   = speechData?.real === true;
+    const model    = speechData?.model || "ar-SA_ConversationalTranscription";
+    const region   = speechData?.region || "eastus";
+    const wordCnt  = speechData?.word_count || 0;
+
+    // Reset ayah rows
     ayahs.forEach(a => {
       const row  = document.getElementById(`simrow-${a.ayah}`);
       const txt  = document.getElementById(`simtext-${a.ayah}`);
@@ -958,30 +982,23 @@
       if (bar)  bar.style.width = "0";
     });
 
-    function log(text, cls = "") {
-      const el = document.createElement("div");
-      el.className = "sim-log-line " + cls;
-      const ts = new Date().toISOString().slice(11, 19);
-      el.textContent = `[${ts}]  ${text}`;
-      term.appendChild(el);
-      term.scrollTop = term.scrollHeight;
-    }
-
     function revealPhrase(a) {
-      const conf = a.confidence || 0;
+      const conf = a.speech_confidence ?? a.confidence ?? 0;
       const dur  = a.end_ms - a.start_ms;
+      const wc   = a.speech_word_count || 0;
+      const txt  = a.speech_text || a.text_uthmani || "";
       const row  = document.getElementById(`simrow-${a.ayah}`);
-      const txt  = document.getElementById(`simtext-${a.ayah}`);
+      const txtEl  = document.getElementById(`simtext-${a.ayah}`);
       const meta = document.getElementById(`simmeta-${a.ayah}`);
       const bar  = document.getElementById(`simbar-${a.ayah}`);
-      if (row)  { row.classList.add("revealed"); row.style.borderLeftColor = "#10b98155"; row.scrollIntoView({ behavior: "smooth", block: "nearest" }); }
-      if (txt)  txt.textContent = a.text_uthmani || "";
-      if (meta) meta.innerHTML = `<span class="az-badge az-badge-speech">🎙 RECOGNIZED</span>
+      if (row)   { row.classList.add("revealed"); row.style.borderLeftColor = "#10b98155"; row.scrollIntoView({ behavior: "smooth", block: "nearest" }); }
+      if (txtEl) txtEl.textContent = txt;
+      if (meta)  meta.innerHTML = `<span class="az-badge az-badge-speech">🎙 RECOGNIZED</span>
         <span style="font-size:0.65rem;color:#475569">
           ${(a.start_ms/1000).toFixed(3)}s–${(a.end_ms/1000).toFixed(3)}s · ${dur}ms
-          · lang <b style="color:#34d399">ar-SA</b> · conf <b style="color:#4ade80">${(conf*100).toFixed(1)}%</b>
+          · lang <b style="color:#34d399">ar-SA</b> · conf <b style="color:#4ade80">${(conf*100).toFixed(1)}%</b>${wc ? ` · ${wc} words` : ""}
         </span>`;
-      if (bar)  { bar.style.width = `${conf*100}%`; bar.style.background = "#10b981"; }
+      if (bar)   { bar.style.width = `${conf*100}%`; bar.style.background = "#10b981"; }
       log(`RECOGNIZED  ayah ${String(a.ayah).padStart(2)}  ${(a.start_ms/1000).toFixed(3)}s→${(a.end_ms/1000).toFixed(3)}s  conf:${(conf*100).toFixed(1)}%  lang:ar-SA`, "sim-log-ok");
       if (status) status.textContent = `Recognized ayah ${a.ayah} of ${ayahs.length}…`;
     }
@@ -990,9 +1007,10 @@
     const after = ms => { t += ms; return t; };
 
     setTimeout(() => log("Azure Cognitive Services  Speech SDK v1.38", "sim-log-head"), after(0));
-    setTimeout(() => log(`model  : ar-SA_ConversationalTranscription`, "sim-log-dim"), after(280));
-    setTimeout(() => log(`region : eastus  ·  tier : Standard S0`, "sim-log-dim"), after(220));
+    setTimeout(() => log(`model  : ${model}`, "sim-log-dim"), after(280));
+    setTimeout(() => log(`region : ${region}  ·  tier : Standard S0`, "sim-log-dim"), after(220));
     setTimeout(() => log(`mode   : real-time streaming (WebSocket)`, "sim-log-dim"), after(200));
+    setTimeout(() => log(`data   : ${isReal ? "✓ Azure Speech API — real transcription" : "synthetic demo (set AZURE_AI_KEY to enable real calls)"}`, isReal ? "sim-log-ok" : "sim-log-dim"), after(200));
     setTimeout(() => log("─".repeat(50), "sim-log-dim"), after(200));
     setTimeout(() => log(`surah  : ${currentSurah.name_english} (${currentSurah.surah})`, "sim-log-dim"), after(180));
     setTimeout(() => log(`audio  : ${currentSurah.source_audio_url || "mp3quran.net"}`, "sim-log-dim"), after(180));
@@ -1001,6 +1019,9 @@
     setTimeout(() => log("✓ WebSocket connected", "sim-log-ok"), after(650));
     setTimeout(() => log("speaker diarization : on  (id: Speaker_1)", "sim-log-dim"), after(300));
     setTimeout(() => log("language detection  : auto (candidate: ar-SA)", "sim-log-dim"), after(200));
+    if (isReal && wordCnt) {
+      setTimeout(() => log(`words transcribed   : ${wordCnt}`, "sim-log-dim"), after(180));
+    }
     setTimeout(() => {
       log("streaming audio — real-time recognition started…", "sim-log-head");
       btn.textContent = "⏸ Recognizing…";
@@ -1022,17 +1043,16 @@
       const onEnd = () => {
         player.removeEventListener("timeupdate", onTime);
         player.removeEventListener("ended",      onEnd);
-        const totalWords = ayahs.reduce((s, a) => s + (a.text_uthmani || "").split(" ").length, 0);
         log("─".repeat(50), "sim-log-dim");
         setTimeout(() => log(`✓  ${ayahs.length} phrases recognized`, "sim-log-head"), 200);
         setTimeout(() => log(`   language detected : ar-SA (99.8%)`, "sim-log-dim"), 400);
-        setTimeout(() => log(`   words transcribed : ~${totalWords}`, "sim-log-dim"), 600);
-        setTimeout(() => log(`   speaker label     : Speaker_1`, "sim-log-dim"), 800);
+        if (isReal && wordCnt) setTimeout(() => log(`   words transcribed : ${wordCnt}`, "sim-log-dim"), 600);
+        setTimeout(() => log(`   speaker label     : Speaker_1`, "sim-log-dim"), isReal && wordCnt ? 800 : 600);
         setTimeout(() => {
           log("✓  Azure Speech transcription complete", "sim-log-ok");
           if (btn)    { btn.disabled = false; btn.textContent = "↺ Run again"; }
           if (status) status.textContent = `✓ ${ayahs.length} phrases recognized by Azure Speech Service`;
-        }, 1000);
+        }, isReal && wordCnt ? 1000 : 800);
       };
       player._simOnTime = onTime;
       player._simOnEnd  = onEnd;
