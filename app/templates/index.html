@@ -605,12 +605,19 @@
     }
   }
 
-  function selectAyah(num) {
+  function selectAyah(num, autoplay = false) {
     currentAyahNum = num;
     ayahSlider.value = num;
     ayahLabel.textContent = num;
     renderAyah(num);
     window.scrollTo({ top: 0, behavior: "smooth" });
+    if (autoplay) {
+      // Small delay to let the DOM paint and audio element attach its handlers
+      setTimeout(() => {
+        const player = contentArea.querySelector("#ayahPlayer");
+        if (player) player.play().catch(() => {});
+      }, 80);
+    }
   }
 
   // ── view toggle ──
@@ -921,10 +928,17 @@
   function jumpToResult(surah, ayah) {
     searchResultsArea.innerHTML = "";
     searchInput.value = "";
-    if (surahSelect) {
-      surahSelect.value = surah;
-    }
-    loadSurah(surah).then ? loadSurah(surah).then(() => selectAyah(ayah)) : setTimeout(() => selectAyah(ayah), 800);
+    // Switch to ayah-picker so the card + player are visible
+    viewMode = "ayah";
+    document.getElementById("btnAyahView").classList.add("active");
+    document.getElementById("btnKaraokeView").classList.remove("active");
+    document.getElementById("btnSimView").classList.remove("active");
+    const sliderSection = document.getElementById("sliderSection");
+    if (sliderSection) sliderSection.style.display = "";
+    if (surahSelect) surahSelect.value = surah;
+    loadSurah(surah).then
+      ? loadSurah(surah).then(() => selectAyah(ayah, true))
+      : setTimeout(() => selectAyah(ayah, true), 800);
   }
 
   // ── boot ──
