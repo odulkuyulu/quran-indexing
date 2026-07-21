@@ -575,11 +575,27 @@
     if (player) {
       const startSec = start / 1000;
       const endSec   = end   / 1000;
-      player.addEventListener("canplay", () => {
-        if (player.currentTime < startSec || player.currentTime > endSec) {
+      let isSeeking = false;
+
+      // When play is pressed from outside the ayah window, pause → seek → resume.
+      // This prevents the browser briefly playing from position 0 while the seek
+      // request is in flight (the "prior ayah bleeds in" bug).
+      player.addEventListener("play", () => {
+        if (isSeeking) return;
+        if (player.currentTime < startSec || player.currentTime >= endSec) {
+          isSeeking = true;
+          player.pause();
           player.currentTime = startSec;
         }
-      }, { once: true });
+      });
+      player.addEventListener("seeked", () => {
+        if (isSeeking) {
+          isSeeking = false;
+          player.play();
+        }
+      });
+
+      // Stop at ayah end and reset to start
       player.addEventListener("timeupdate", () => {
         if (player.currentTime >= endSec) {
           player.pause();
