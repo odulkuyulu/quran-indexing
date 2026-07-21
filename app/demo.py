@@ -43,6 +43,9 @@ def load_available_indices() -> Dict[int, Dict]:
     if not OUTPUT_DIR.exists():
         return indices
     for json_file in OUTPUT_DIR.glob("*.json"):
+        # Skip enrichment files — only index alignment JSONs
+        if any(json_file.name.endswith(sfx) for sfx in ("_speech.json", "_cu.json")):
+            continue
         try:
             with open(json_file, "r", encoding="utf-8") as f:
                 data = json.load(f)
