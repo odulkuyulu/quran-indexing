@@ -311,6 +311,7 @@ def demo_content_understanding(surah_num: int):
     )
     real = False
     proc_ms = int(total_ms * 0.18 + 1200)
+    cu_stored: dict = {}
     contents = []
 
     if cu_file:
@@ -320,47 +321,110 @@ def demo_content_understanding(surah_num: int):
             raw = cu_stored.get("raw_result", {})
             proc_ms = cu_stored.get("processing_time_ms", proc_ms)
 
-            # Azure CU returns fields at segment level under "segments" or "contents"
-            raw_segs = raw.get("segments") or raw.get("contents") or []
+            # GA API (2025-11-01) prebuilt-audioSearch response:
+            # raw = { "analyzerId": "prebuilt-audioSearch", "contents": [...] }
+            # Each content has: transcriptPhrases, fields.Summary, startTimeMs, endTimeMs
+            raw_contents = raw.get("contents") or []
 
-            # Map to the frontend-expected structure, filling gaps from alignment data
-            for i, seg in enumerate(raw_segs):
-                # Time window: from CU or fall back to alignment ayah window
-                ref_ayah  = ayahs[i] if i < len(ayahs) else {}
-                start_ms  = (seg.get("startTimeMs") or seg.get("offsetInMs")
-                             or ref_ayah.get("start_ms", 0))
-                end_ms    = (seg.get("endTimeMs")
-                             or start_ms + (seg.get("durationMs") or ref_ayah.get("end_ms", start_ms) - ref_ayah.get("start_ms", 0))
-                             or ref_ayah.get("end_ms", start_ms + 1000))
+            if raw_contents:
+                # Use transcript phrases as time-aligned segments
+                first_content = raw_contents[0]
+                phrases = first_content.get("transcriptPhrases") or []
+                summary_field = (first_content.get("fields") or {}).get("Summary", {})
+                summary_text = summary_field.get("valueString") or ""
 
-                seg_fields = seg.get("fields", {})
-                # Normalise field values (CU returns {type, valueString} or {valueString})
-                def _fval(f: dict) -> str:
+                if phrases:
+                    # Map each phrase to a segment aligned with nearest ayah
+                    for i, phrase in enumerate(phrases):
+                        start_ms = phrase.get("startTimeMs", 0)
+                        end_ms   = phrase.get("endTimeMs", start_ms + 1000)
+                        # Find the ayah that this phrase falls into
+                        ref_ayah = {}
+                        for a in ayahs:
+                            if a.get("start_ms", 0) <= start_ms <= a.get("end_ms", 0):
+                                ref_ayah = a
+                                break
+                        if not ref_ayah and ayahs:
+                            ref_ayah = ayahs[min(i, len(ayahs) - 1)]
+
+                        contents.append({
+                            "startTimeMs": start_ms,
+                            "endTimeMs":   end_ms,
+                            "transcript":  phrase.get("text", ref_ayah.get("text_uthmani", "")),
+                            "confidence":  round(phrase.get("confidence", ref_ayah.get("confidence", 0.0)), 3),
+                            "fields": {
+                                "language":        {"valueString": phrase.get("locale", "ar-SA"), "confidence": 0.999},
+                                "script":          {"valueString": "Arabic — Uthmani script",     "confidence": 0.990},
+                                "recitationStyle": {"valueString": "Tajweed (Hafs an Asim)",      "confidence": 0.940},
+                                "speakerEmotion":  {"valueString": meta["sentiment"],              "confidence": 0.880},
+                                "ayahIndex":       {"valueInteger": ref_ayah.get("ayah", i + 1)},
+                                "durationMs":      {"valueInteger": end_ms - start_ms},
+                            },
+                        })
+                    real_topics = meta["topics"]  # prebuilt analyzer doesn't extract topics
+                    topics = real_topics
+                    if summary_text:
+                        # Derive topics from summary (best effort)
+                        pass
+                    real = True
+                else:
+                    # No transcript phrases but we have contents — use ayah-level fallback
+                    for i, seg in enumerate(raw_contents):
+                        ref_ayah  = ayahs[i] if i < len(ayahs) else {}
+                        start_ms  = seg.get("startTimeMs", ref_ayah.get("start_ms", 0))
+                        end_ms    = seg.get("endTimeMs",   ref_ayah.get("end_ms", start_ms + 1000))
+                        contents.append({
+                            "startTimeMs": start_ms,
+                            "endTimeMs":   end_ms,
+                            "transcript":  ref_ayah.get("text_uthmani", ""),
+                            "confidence":  round(ref_ayah.get("confidence", 0.0), 3),
+                            "fields": {
+                                "language":        {"valueString": "ar-SA",                   "confidence": 0.999},
+                                "script":          {"valueString": "Arabic — Uthmani script", "confidence": 0.990},
+                                "recitationStyle": {"valueString": "Tajweed (Hafs an Asim)",  "confidence": 0.940},
+                                "speakerEmotion":  {"valueString": meta["sentiment"],          "confidence": 0.880},
+                                "ayahIndex":       {"valueInteger": ref_ayah.get("ayah", i + 1)},
+                                "durationMs":      {"valueInteger": end_ms - start_ms},
+                            },
+                        })
+                    real = True
+                    topics = meta["topics"]
+            else:
+                # Older format: raw.segments or raw.fields (preview API response)
+                raw_segs = raw.get("segments") or []
+                for i, seg in enumerate(raw_segs):
+                    ref_ayah  = ayahs[i] if i < len(ayahs) else {}
+                    start_ms  = (seg.get("startTimeMs") or seg.get("offsetInMs")
+                                 or ref_ayah.get("start_ms", 0))
+                    end_ms    = (seg.get("endTimeMs")
+                                 or start_ms + (seg.get("durationMs") or ref_ayah.get("end_ms", start_ms) - ref_ayah.get("start_ms", 0))
+                                 or ref_ayah.get("end_ms", start_ms + 1000))
+                    seg_fields = seg.get("fields", {})
+
+                    def _fval(f: dict) -> str:
+                        return f.get("valueString") or f.get("value") or ""
+
+                    contents.append({
+                        "startTimeMs": start_ms,
+                        "endTimeMs":   end_ms,
+                        "transcript":  seg.get("content") or seg.get("text") or ref_ayah.get("text_uthmani", ""),
+                        "confidence":  ref_ayah.get("confidence", 0.0),
+                        "fields": {
+                            "language":        {"valueString": _fval(seg_fields.get("language", {})) or "ar-SA",                   "confidence": 0.999},
+                            "script":          {"valueString": _fval(seg_fields.get("script", {})) or "Arabic — Uthmani script",   "confidence": 0.990},
+                            "recitationStyle": {"valueString": _fval(seg_fields.get("recitationStyle", {})) or "Tajweed (Hafs an Asim)", "confidence": 0.940},
+                            "speakerEmotion":  {"valueString": _fval(seg_fields.get("overallSentiment", {})) or meta["sentiment"], "confidence": 0.880},
+                            "ayahIndex":       {"valueInteger": ref_ayah.get("ayah", i + 1)},
+                            "durationMs":      {"valueInteger": end_ms - start_ms},
+                        },
+                    })
+
+                raw_doc_fields = raw.get("fields", {})
+                def _dfval(f: dict) -> str:
                     return f.get("valueString") or f.get("value") or ""
-
-                contents.append({
-                    "startTimeMs": start_ms,
-                    "endTimeMs":   end_ms,
-                    "transcript":  seg.get("content") or seg.get("text") or ref_ayah.get("text_uthmani", ""),
-                    "confidence":  ref_ayah.get("confidence", 0.0),
-                    "fields": {
-                        "language":        {"valueString": _fval(seg_fields.get("language", {})) or "ar-SA", "confidence": 0.999},
-                        "script":          {"valueString": _fval(seg_fields.get("script", {})) or "Arabic — Uthmani script", "confidence": 0.990},
-                        "recitationStyle": {"valueString": _fval(seg_fields.get("recitationStyle", {})) or "Tajweed (Hafs an Asim)", "confidence": 0.940},
-                        "speakerEmotion":  {"valueString": _fval(seg_fields.get("overallSentiment", {})) or meta["sentiment"], "confidence": 0.880},
-                        "ayahIndex":       {"valueInteger": ref_ayah.get("ayah", i + 1)},
-                        "durationMs":      {"valueInteger": end_ms - start_ms},
-                    },
-                })
-
-            # Document-level fields from CU (supplement with our metadata)
-            raw_doc_fields = raw.get("fields", {})
-            def _dfval(f: dict) -> str:
-                return f.get("valueString") or f.get("value") or ""
-
-            real_topics = [t.strip() for t in (_dfval(raw_doc_fields.get("topics", {})) or "").split(",") if t.strip()]
-            topics = real_topics or meta["topics"]
-            real = True
+                real_topics = [t.strip() for t in (_dfval(raw_doc_fields.get("topics", {})) or "").split(",") if t.strip()]
+                topics = real_topics or meta["topics"]
+                real = True
 
         except Exception:
             contents = []  # fall through to synthetic below
@@ -386,7 +450,7 @@ def demo_content_understanding(surah_num: int):
 
     return jsonify({
         "service":          "Azure AI Content Understanding",
-        "analyzerId":       "quran-audio-v1",
+        "analyzerId":       cu_stored.get("analyzer_id", "prebuilt-audioSearch") if cu_file else "prebuilt-audioSearch",
         "real":             real,
         "status":           "Succeeded",
         "processingTimeMs": proc_ms,

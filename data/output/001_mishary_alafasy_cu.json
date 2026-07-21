@@ -1,0 +1,123 @@
+{
+  "surah": 1,
+  "name_english": "Al-Fatihah",
+  "name_arabic": "الفاتحة",
+  "reciter": "mishary_alafasy",
+  "service": "Azure AI Content Understanding",
+  "analyzer_id": "prebuilt-audioSearch",
+  "api_version": "2025-11-01",
+  "status": "Succeeded",
+  "processing_time_ms": 21660,
+  "source_audio": "data\\audio\\normalized\\001_mishary_alafasy_normalized.wav",
+  "raw_result": {
+    "analyzerId": "prebuilt-audioSearch",
+    "apiVersion": "2025-11-01",
+    "createdAt": "2026-07-21T18:30:31Z",
+    "stringEncoding": "utf8",
+    "warnings": [],
+    "contents": [
+      {
+        "path": "input1",
+        "markdown": "# Audio: 00:00.000 => 00:51.931\n\nTranscript\n```\nWEBVTT\n\n00:00.080 --> 00:23.920\n<v Speaker 1>Ahudu bil lahi min ash Shayntaa nirwajeen Bismillahir Rahmanirwaheen Alhamdulillahir Abbil Alameen Allahmanirwaheen Malik Yawmiddeen\n```",
+        "fields": {
+          "Summary": {
+            "type": "string",
+            "valueString": "The conversation consists of a brief recitation of an Islamic prayer or invocation, including phrases praising Allah and seeking protection from evil."
+          }
+        },
+        "kind": "audioVisual",
+        "startTimeMs": 0,
+        "endTimeMs": 51931,
+        "transcriptPhrases": [
+          {
+            "speaker": "Speaker 1",
+            "startTimeMs": 80,
+            "endTimeMs": 23920,
+            "text": "Ahudu bil lahi min ash Shayntaa nirwajeen Bismillahir Rahmanirwaheen Alhamdulillahir Abbil Alameen Allahmanirwaheen Malik Yawmiddeen",
+            "confidence": 0.385,
+            "words": [
+              {
+                "startTimeMs": 80,
+                "endTimeMs": 880,
+                "text": "Ahudu"
+              },
+              {
+                "startTimeMs": 880,
+                "endTimeMs": 1360,
+                "text": "bil"
+              },
+              {
+                "startTimeMs": 1520,
+                "endTimeMs": 1760,
+                "text": "lahi"
+              },
+              {
+                "startTimeMs": 1760,
+                "endTimeMs": 2080,
+                "text": "min"
+              },
+              {
+                "startTimeMs": 2080,
+                "endTimeMs": 2200,
+                "text": "ash"
+              },
+              {
+                "startTimeMs": 2200,
+                "endTimeMs": 3120,
+                "text": "Shayntaa"
+              },
+              {
+                "startTimeMs": 3120,
+                "endTimeMs": 3760,
+                "text": "nirwajeen"
+              },
+              {
+                "startTimeMs": 6320,
+                "endTimeMs": 7760,
+                "text": "Bismillahir"
+              },
+              {
+                "startTimeMs": 7920,
+                "endTimeMs": 9440,
+                "text": "Rahmanirwaheen"
+              },
+              {
+                "startTimeMs": 12440,
+                "endTimeMs": 14320,
+                "text": "Alhamdulillahir"
+              },
+              {
+                "startTimeMs": 14440,
+                "endTimeMs": 15040,
+                "text": "Abbil"
+              },
+              {
+                "startTimeMs": 15120,
+                "endTimeMs": 15760,
+                "text": "Alameen"
+              },
+              {
+                "startTimeMs": 18160,
+                "endTimeMs": 19920,
+                "text": "Allahmanirwaheen"
+              },
+              {
+                "startTimeMs": 22480,
+                "endTimeMs": 23200,
+                "text": "Malik"
+              },
+              {
+                "startTimeMs": 23360,
+                "endTimeMs": 23920,
+                "text": "Yawmiddeen"
+              }
+            ],
+            "locale": "en-US"
+          }
+        ],
+        "analyzerId": "prebuilt-audioSearch",
+        "mimeType": "audio/wav"
+      }
+    ]
+  }
+}

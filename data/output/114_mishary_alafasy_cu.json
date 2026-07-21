@@ -1,0 +1,123 @@
+{
+  "surah": 114,
+  "name_english": "An-Nas",
+  "name_arabic": "الناس",
+  "reciter": "mishary_alafasy",
+  "service": "Azure AI Content Understanding",
+  "analyzer_id": "prebuilt-audioSearch",
+  "api_version": "2025-11-01",
+  "status": "Succeeded",
+  "processing_time_ms": 21388,
+  "source_audio": "data\\audio\\normalized\\114_mishary_alafasy_normalized.wav",
+  "raw_result": {
+    "analyzerId": "prebuilt-audioSearch",
+    "apiVersion": "2025-11-01",
+    "createdAt": "2026-07-21T18:29:13Z",
+    "stringEncoding": "utf8",
+    "warnings": [],
+    "contents": [
+      {
+        "path": "input1",
+        "markdown": "# Audio: 00:00.000 => 00:50.051\n\nTranscript\n```\nWEBVTT\n\n00:00.320 --> 00:29.040\n<v Speaker 1>Bismillahir wahmaanir wahim Ull a'udhu bi rabbin nas Malikin nas Ilahin nas Minjharil waswasil khan\n```",
+        "fields": {
+          "Summary": {
+            "type": "string",
+            "valueString": "The conversation consists of a recitation of an Islamic prayer verse, specifically the beginning of Surah An-Nas from the Quran, which is a supplication seeking protection from evil whispers."
+          }
+        },
+        "kind": "audioVisual",
+        "startTimeMs": 0,
+        "endTimeMs": 50051,
+        "transcriptPhrases": [
+          {
+            "speaker": "Speaker 1",
+            "startTimeMs": 320,
+            "endTimeMs": 29040,
+            "text": "Bismillahir wahmaanir wahim Ull a'udhu bi rabbin nas Malikin nas Ilahin nas Minjharil waswasil khan",
+            "confidence": 0.365,
+            "words": [
+              {
+                "startTimeMs": 320,
+                "endTimeMs": 2000,
+                "text": "Bismillahir"
+              },
+              {
+                "startTimeMs": 2000,
+                "endTimeMs": 3360,
+                "text": "wahmaanir"
+              },
+              {
+                "startTimeMs": 3480,
+                "endTimeMs": 6320,
+                "text": "wahim"
+              },
+              {
+                "startTimeMs": 7040,
+                "endTimeMs": 7360,
+                "text": "Ull"
+              },
+              {
+                "startTimeMs": 7440,
+                "endTimeMs": 8320,
+                "text": "a'udhu"
+              },
+              {
+                "startTimeMs": 8320,
+                "endTimeMs": 8440,
+                "text": "bi"
+              },
+              {
+                "startTimeMs": 8480,
+                "endTimeMs": 9520,
+                "text": "rabbin"
+              },
+              {
+                "startTimeMs": 12800,
+                "endTimeMs": 13200,
+                "text": "nas"
+              },
+              {
+                "startTimeMs": 13520,
+                "endTimeMs": 14320,
+                "text": "Malikin"
+              },
+              {
+                "startTimeMs": 15440,
+                "endTimeMs": 15920,
+                "text": "nas"
+              },
+              {
+                "startTimeMs": 19240,
+                "endTimeMs": 20080,
+                "text": "Ilahin"
+              },
+              {
+                "startTimeMs": 21120,
+                "endTimeMs": 21360,
+                "text": "nas"
+              },
+              {
+                "startTimeMs": 24800,
+                "endTimeMs": 27200,
+                "text": "Minjharil"
+              },
+              {
+                "startTimeMs": 27200,
+                "endTimeMs": 28560,
+                "text": "waswasil"
+              },
+              {
+                "startTimeMs": 28560,
+                "endTimeMs": 29040,
+                "text": "khan"
+              }
+            ],
+            "locale": "en-US"
+          }
+        ],
+        "analyzerId": "prebuilt-audioSearch",
+        "mimeType": "audio/wav"
+      }
+    ]
+  }
+}

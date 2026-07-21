@@ -1,0 +1,138 @@
+{
+  "surah": 112,
+  "name_english": "Al-Ikhlas",
+  "name_arabic": "الإخلاص",
+  "reciter": "mishary_alafasy",
+  "service": "Azure AI Content Understanding",
+  "analyzer_id": "prebuilt-audioSearch",
+  "api_version": "2025-11-01",
+  "status": "Succeeded",
+  "processing_time_ms": 21119,
+  "source_audio": "data\\audio\\normalized\\112_mishary_alafasy_normalized.wav",
+  "raw_result": {
+    "analyzerId": "prebuilt-audioSearch",
+    "apiVersion": "2025-11-01",
+    "createdAt": "2026-07-21T18:24:17Z",
+    "stringEncoding": "utf8",
+    "warnings": [],
+    "contents": [
+      {
+        "path": "input1",
+        "markdown": "# Audio: 00:00.000 => 00:21.707\n\nTranscript\n```\nWEBVTT\n\n00:00.320 --> 00:19.920\n<v Speaker 1>Bismillahir Rahmanir Raheem Qulhu Allahu Ahad Allahu Samaad Lam yalidu wa lam yulad Wa lam yakullahu kufuwan ahad\n```",
+        "fields": {
+          "Summary": {
+            "type": "string",
+            "valueString": "The conversation consists of a recitation of a religious text, specifically a verse from the Quran known as Surah Al-Ikhlas, which emphasizes the oneness and uniqueness of Allah."
+          }
+        },
+        "kind": "audioVisual",
+        "startTimeMs": 0,
+        "endTimeMs": 21708,
+        "transcriptPhrases": [
+          {
+            "speaker": "Speaker 1",
+            "startTimeMs": 320,
+            "endTimeMs": 19920,
+            "text": "Bismillahir Rahmanir Raheem Qulhu Allahu Ahad Allahu Samaad Lam yalidu wa lam yulad Wa lam yakullahu kufuwan ahad",
+            "confidence": 0.427,
+            "words": [
+              {
+                "startTimeMs": 320,
+                "endTimeMs": 1880,
+                "text": "Bismillahir"
+              },
+              {
+                "startTimeMs": 2120,
+                "endTimeMs": 3160,
+                "text": "Rahmanir"
+              },
+              {
+                "startTimeMs": 3160,
+                "endTimeMs": 3840,
+                "text": "Raheem"
+              },
+              {
+                "startTimeMs": 7200,
+                "endTimeMs": 7920,
+                "text": "Qulhu"
+              },
+              {
+                "startTimeMs": 7920,
+                "endTimeMs": 8960,
+                "text": "Allahu"
+              },
+              {
+                "startTimeMs": 8960,
+                "endTimeMs": 9600,
+                "text": "Ahad"
+              },
+              {
+                "startTimeMs": 10360,
+                "endTimeMs": 11320,
+                "text": "Allahu"
+              },
+              {
+                "startTimeMs": 11360,
+                "endTimeMs": 12240,
+                "text": "Samaad"
+              },
+              {
+                "startTimeMs": 12880,
+                "endTimeMs": 13360,
+                "text": "Lam"
+              },
+              {
+                "startTimeMs": 13360,
+                "endTimeMs": 14000,
+                "text": "yalidu"
+              },
+              {
+                "startTimeMs": 14000,
+                "endTimeMs": 14320,
+                "text": "wa"
+              },
+              {
+                "startTimeMs": 14320,
+                "endTimeMs": 14760,
+                "text": "lam"
+              },
+              {
+                "startTimeMs": 14760,
+                "endTimeMs": 15400,
+                "text": "yulad"
+              },
+              {
+                "startTimeMs": 15400,
+                "endTimeMs": 15760,
+                "text": "Wa"
+              },
+              {
+                "startTimeMs": 16080,
+                "endTimeMs": 16800,
+                "text": "lam"
+              },
+              {
+                "startTimeMs": 16800,
+                "endTimeMs": 18080,
+                "text": "yakullahu"
+              },
+              {
+                "startTimeMs": 18240,
+                "endTimeMs": 19200,
+                "text": "kufuwan"
+              },
+              {
+                "startTimeMs": 19200,
+                "endTimeMs": 19920,
+                "text": "ahad"
+              }
+            ],
+            "locale": "en-US"
+          }
+        ],
+        "analyzerId": "prebuilt-audioSearch",
+        "mimeType": "audio/wav"
+      }
+    ]
+  }
+}

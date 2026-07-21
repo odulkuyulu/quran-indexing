@@ -34,11 +34,30 @@ from dotenv import load_dotenv
 load_dotenv()
 
 KEY     = os.getenv("AZURE_AI_KEY", "")
+AD_TOKEN = os.getenv("AZURE_AD_TOKEN", "")  # bearer token — used when key auth is disabled
 REGION  = os.getenv("AZURE_SPEECH_REGION", "westeurope")
+ENDPOINT = os.getenv("AZURE_AI_ENDPOINT", "").rstrip("/")  # custom subdomain — required for token auth
 OUTPUT_DIR = Path(os.getenv("OUTPUT_DIR", "./data/output"))
 
-SPEECH_API = f"https://{REGION}.api.cognitive.microsoft.com/speechtotext/v3.1"
-HEADERS    = {"Ocp-Apim-Subscription-Key": KEY, "Content-Type": "application/json"}
+# Bearer-token auth requires the custom subdomain endpoint; key auth uses the regional endpoint
+if AD_TOKEN and ENDPOINT:
+    SPEECH_API = f"{ENDPOINT}/speechtotext/v3.1"
+else:
+    SPEECH_API = f"https://{REGION}.api.cognitive.microsoft.com/speechtotext/v3.1"
+
+
+def _auth_headers() -> dict:
+    """Return authentication headers, preferring bearer token (works when key auth is disabled)."""
+    if AD_TOKEN:
+        return {"Authorization": f"Bearer {AD_TOKEN}", "Content-Type": "application/json"}
+    if KEY:
+        return {"Ocp-Apim-Subscription-Key": KEY, "Content-Type": "application/json"}
+    raise RuntimeError(
+        "No Azure credentials available — set AZURE_AI_KEY or AZURE_AD_TOKEN"
+    )
+
+
+HEADERS = _auth_headers()
 
 
 # ── helpers ──────────────────────────────────────────────────────────────────
@@ -170,8 +189,8 @@ def process_surah(surah_num: int) -> None:
 
 
 if __name__ == "__main__":
-    if not KEY:
-        sys.exit("AZURE_AI_KEY is not set — cannot call Azure Speech.")
+    if not KEY and not AD_TOKEN:
+        sys.exit("Either AZURE_AI_KEY or AZURE_AD_TOKEN must be set.")
 
     parser = argparse.ArgumentParser(description="Run Azure Speech batch transcription.")
     parser.add_argument("--surah", type=int, nargs="+", required=True,

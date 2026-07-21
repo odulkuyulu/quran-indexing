@@ -1,0 +1,611 @@
+{
+  "surah": 114,
+  "name_english": "An-Nas",
+  "name_arabic": "الناس",
+  "reciter": "mishary_alafasy",
+  "service": "Azure Speech Service",
+  "model": "ar-SA_ConversationalTranscription",
+  "region": "westeurope",
+  "language": "ar-SA",
+  "duration_ms": 50050,
+  "source_audio": "https://server8.mp3quran.net/afs/114.mp3",
+  "word_count": 45,
+  "phrases": [
+    {
+      "offset_ms": 310,
+      "duration_ms": 2400,
+      "text": "بسم الله الرحمن",
+      "lexical": "بسم الله الرحمن",
+      "confidence": 0.8882,
+      "words": [
+        {
+          "word": "بسم",
+          "offset_ms": 310,
+          "duration_ms": 600,
+          "confidence": 0.8636
+        },
+        {
+          "word": "الله",
+          "offset_ms": 910,
+          "duration_ms": 480,
+          "confidence": 0.9457
+        },
+        {
+          "word": "الرحمن",
+          "offset_ms": 1550,
+          "duration_ms": 1160,
+          "confidence": 0.8554
+        }
+      ]
+    },
+    {
+      "offset_ms": 4160,
+      "duration_ms": 240,
+      "text": "الرحيم",
+      "lexical": "الرحيم",
+      "confidence": 0.8738,
+      "words": [
+        {
+          "word": "الرحيم",
+          "offset_ms": 4160,
+          "duration_ms": 240,
+          "confidence": 0.8738
+        }
+      ]
+    },
+    {
+      "offset_ms": 6960,
+      "duration_ms": 2240,
+      "text": "قل أعوذ برب",
+      "lexical": "قل أعوذ برب",
+      "confidence": 0.857,
+      "words": [
+        {
+          "word": "قل",
+          "offset_ms": 6960,
+          "duration_ms": 400,
+          "confidence": 0.9748
+        },
+        {
+          "word": "أعوذ",
+          "offset_ms": 7360,
+          "duration_ms": 1320,
+          "confidence": 0.7616
+        },
+        {
+          "word": "برب",
+          "offset_ms": 8880,
+          "duration_ms": 320,
+          "confidence": 0.8345
+        }
+      ]
+    },
+    {
+      "offset_ms": 10560,
+      "duration_ms": 1320,
+      "text": "",
+      "lexical": "",
+      "confidence": 0.0,
+      "words": []
+    },
+    {
+      "offset_ms": 11880,
+      "duration_ms": 1320,
+      "text": "",
+      "lexical": "",
+      "confidence": 0.0,
+      "words": []
+    },
+    {
+      "offset_ms": 13200,
+      "duration_ms": 2240,
+      "text": "",
+      "lexical": "",
+      "confidence": 0.0,
+      "words": []
+    },
+    {
+      "offset_ms": 16880,
+      "duration_ms": 1960,
+      "text": "",
+      "lexical": "",
+      "confidence": 0.0,
+      "words": []
+    },
+    {
+      "offset_ms": 19190,
+      "duration_ms": 720,
+      "text": "إله",
+      "lexical": "إله",
+      "confidence": 0.6511,
+      "words": [
+        {
+          "word": "إله",
+          "offset_ms": 19190,
+          "duration_ms": 720,
+          "confidence": 0.6511
+        }
+      ]
+    },
+    {
+      "offset_ms": 22040,
+      "duration_ms": 2280,
+      "text": "",
+      "lexical": "",
+      "confidence": 0.0,
+      "words": []
+    },
+    {
+      "offset_ms": 24790,
+      "duration_ms": 3440,
+      "text": "من شر الوسواس",
+      "lexical": "من شر الوسواس",
+      "confidence": 0.9047,
+      "words": [
+        {
+          "word": "من",
+          "offset_ms": 24790,
+          "duration_ms": 400,
+          "confidence": 0.9809
+        },
+        {
+          "word": "شر",
+          "offset_ms": 26310,
+          "duration_ms": 600,
+          "confidence": 0.8811
+        },
+        {
+          "word": "الوسواس",
+          "offset_ms": 27150,
+          "duration_ms": 1080,
+          "confidence": 0.8522
+        }
+      ]
+    },
+    {
+      "offset_ms": 29960,
+      "duration_ms": 360,
+      "text": "الخ",
+      "lexical": "الخ",
+      "confidence": 0.7357,
+      "words": [
+        {
+          "word": "الخ",
+          "offset_ms": 29960,
+          "duration_ms": 360,
+          "confidence": 0.7357
+        }
+      ]
+    },
+    {
+      "offset_ms": 31120,
+      "duration_ms": 1320,
+      "text": "",
+      "lexical": "",
+      "confidence": 0.0,
+      "words": []
+    },
+    {
+      "offset_ms": 33190,
+      "duration_ms": 3560,
+      "text": "الناس الذي يوسوس في صدور",
+      "lexical": "الناس الذي يوسوس في صدور",
+      "confidence": 0.8206,
+      "words": [
+        {
+          "word": "الناس",
+          "offset_ms": 33190,
+          "duration_ms": 640,
+          "confidence": 0.5432
+        },
+        {
+          "word": "الذي",
+          "offset_ms": 33830,
+          "duration_ms": 160,
+          "confidence": 0.9828
+        },
+        {
+          "word": "يوسوس",
+          "offset_ms": 33990,
+          "duration_ms": 1560,
+          "confidence": 0.8455
+        },
+        {
+          "word": "في",
+          "offset_ms": 35550,
+          "duration_ms": 400,
+          "confidence": 0.9021
+        },
+        {
+          "word": "صدور",
+          "offset_ms": 35950,
+          "duration_ms": 800,
+          "confidence": 0.8291
+        }
+      ]
+    },
+    {
+      "offset_ms": 38320,
+      "duration_ms": 1600,
+      "text": "",
+      "lexical": "",
+      "confidence": 0.0,
+      "words": []
+    },
+    {
+      "offset_ms": 41670,
+      "duration_ms": 520,
+      "text": "الناس من",
+      "lexical": "الناس من",
+      "confidence": 0.7481,
+      "words": [
+        {
+          "word": "الناس",
+          "offset_ms": 41670,
+          "duration_ms": 440,
+          "confidence": 0.51
+        },
+        {
+          "word": "من",
+          "offset_ms": 42110,
+          "duration_ms": 80,
+          "confidence": 0.9861
+        }
+      ]
+    },
+    {
+      "offset_ms": 43880,
+      "duration_ms": 520,
+      "text": "الجنه",
+      "lexical": "الجنه",
+      "confidence": 0.8708,
+      "words": [
+        {
+          "word": "الجنه",
+          "offset_ms": 43880,
+          "duration_ms": 520,
+          "confidence": 0.8708
+        }
+      ]
+    },
+    {
+      "offset_ms": 46080,
+      "duration_ms": 240,
+      "text": "والناس",
+      "lexical": "والناس",
+      "confidence": 0.8793,
+      "words": [
+        {
+          "word": "والناس",
+          "offset_ms": 46080,
+          "duration_ms": 240,
+          "confidence": 0.8793
+        }
+      ]
+    },
+    {
+      "offset_ms": 47200,
+      "duration_ms": 1280,
+      "text": "",
+      "lexical": "",
+      "confidence": 0.0,
+      "words": []
+    },
+    {
+      "offset_ms": 48630,
+      "duration_ms": 240,
+      "text": "والناس",
+      "lexical": "والناس",
+      "confidence": 0.3689,
+      "words": [
+        {
+          "word": "والناس",
+          "offset_ms": 48630,
+          "duration_ms": 240,
+          "confidence": 0.3689
+        }
+      ]
+    },
+    {
+      "offset_ms": 310,
+      "duration_ms": 2400,
+      "text": "بسم الله الرحمن",
+      "lexical": "بسم الله الرحمن",
+      "confidence": 0.9208,
+      "words": [
+        {
+          "word": "بسم",
+          "offset_ms": 310,
+          "duration_ms": 600,
+          "confidence": 0.9323
+        },
+        {
+          "word": "الله",
+          "offset_ms": 910,
+          "duration_ms": 880,
+          "confidence": 0.9716
+        },
+        {
+          "word": "الرحمن",
+          "offset_ms": 1790,
+          "duration_ms": 920,
+          "confidence": 0.8584
+        }
+      ]
+    },
+    {
+      "offset_ms": 4160,
+      "duration_ms": 240,
+      "text": "الرحيم",
+      "lexical": "الرحيم",
+      "confidence": 0.8703,
+      "words": [
+        {
+          "word": "الرحيم",
+          "offset_ms": 4160,
+          "duration_ms": 240,
+          "confidence": 0.8703
+        }
+      ]
+    },
+    {
+      "offset_ms": 6960,
+      "duration_ms": 2160,
+      "text": "قل أعوذ برب",
+      "lexical": "قل أعوذ برب",
+      "confidence": 0.8717,
+      "words": [
+        {
+          "word": "قل",
+          "offset_ms": 6960,
+          "duration_ms": 400,
+          "confidence": 0.9737
+        },
+        {
+          "word": "أعوذ",
+          "offset_ms": 7360,
+          "duration_ms": 1320,
+          "confidence": 0.8056
+        },
+        {
+          "word": "برب",
+          "offset_ms": 8880,
+          "duration_ms": 240,
+          "confidence": 0.8358
+        }
+      ]
+    },
+    {
+      "offset_ms": 10800,
+      "duration_ms": 840,
+      "text": "نا",
+      "lexical": "نا",
+      "confidence": 0.5057,
+      "words": [
+        {
+          "word": "نا",
+          "offset_ms": 10800,
+          "duration_ms": 840,
+          "confidence": 0.5057
+        }
+      ]
+    },
+    {
+      "offset_ms": 13510,
+      "duration_ms": 600,
+      "text": "الناس ملك",
+      "lexical": "الناس ملك",
+      "confidence": 0.6287,
+      "words": [
+        {
+          "word": "الناس",
+          "offset_ms": 13510,
+          "duration_ms": 320,
+          "confidence": 0.3833
+        },
+        {
+          "word": "ملك",
+          "offset_ms": 13830,
+          "duration_ms": 280,
+          "confidence": 0.874
+        }
+      ]
+    },
+    {
+      "offset_ms": 15840,
+      "duration_ms": 1720,
+      "text": "",
+      "lexical": "",
+      "confidence": 0.0,
+      "words": []
+    },
+    {
+      "offset_ms": 19190,
+      "duration_ms": 720,
+      "text": "الناس اله",
+      "lexical": "الناس اله",
+      "confidence": 0.6672,
+      "words": [
+        {
+          "word": "الناس",
+          "offset_ms": 19190,
+          "duration_ms": 400,
+          "confidence": 0.4032
+        },
+        {
+          "word": "اله",
+          "offset_ms": 19590,
+          "duration_ms": 320,
+          "confidence": 0.9313
+        }
+      ]
+    },
+    {
+      "offset_ms": 20960,
+      "duration_ms": 1800,
+      "text": "",
+      "lexical": "",
+      "confidence": 0.0,
+      "words": []
+    },
+    {
+      "offset_ms": 22760,
+      "duration_ms": 1600,
+      "text": "",
+      "lexical": "",
+      "confidence": 0.0,
+      "words": []
+    },
+    {
+      "offset_ms": 24830,
+      "duration_ms": 3440,
+      "text": "من شر الوسواس",
+      "lexical": "من شر الوسواس",
+      "confidence": 0.9044,
+      "words": [
+        {
+          "word": "من",
+          "offset_ms": 24830,
+          "duration_ms": 440,
+          "confidence": 0.9851
+        },
+        {
+          "word": "شر",
+          "offset_ms": 26350,
+          "duration_ms": 640,
+          "confidence": 0.8721
+        },
+        {
+          "word": "الوسواس",
+          "offset_ms": 27110,
+          "duration_ms": 1160,
+          "confidence": 0.8562
+        }
+      ]
+    },
+    {
+      "offset_ms": 30040,
+      "duration_ms": 360,
+      "text": "الخ",
+      "lexical": "الخ",
+      "confidence": 0.654,
+      "words": [
+        {
+          "word": "الخ",
+          "offset_ms": 30040,
+          "duration_ms": 360,
+          "confidence": 0.654
+        }
+      ]
+    },
+    {
+      "offset_ms": 33270,
+      "duration_ms": 3560,
+      "text": "الناس الذي يوسوس في صدور",
+      "lexical": "الناس الذي يوسوس في صدور",
+      "confidence": 0.8476,
+      "words": [
+        {
+          "word": "الناس",
+          "offset_ms": 33270,
+          "duration_ms": 560,
+          "confidence": 0.4805
+        },
+        {
+          "word": "الذي",
+          "offset_ms": 33830,
+          "duration_ms": 640,
+          "confidence": 0.9838
+        },
+        {
+          "word": "يوسوس",
+          "offset_ms": 34950,
+          "duration_ms": 560,
+          "confidence": 0.8507
+        },
+        {
+          "word": "في",
+          "offset_ms": 35510,
+          "duration_ms": 440,
+          "confidence": 0.9443
+        },
+        {
+          "word": "صدور",
+          "offset_ms": 35950,
+          "duration_ms": 880,
+          "confidence": 0.9788
+        }
+      ]
+    },
+    {
+      "offset_ms": 38400,
+      "duration_ms": 680,
+      "text": "",
+      "lexical": "",
+      "confidence": 0.0,
+      "words": []
+    },
+    {
+      "offset_ms": 39080,
+      "duration_ms": 2520,
+      "text": "",
+      "lexical": "",
+      "confidence": 0.0,
+      "words": []
+    },
+    {
+      "offset_ms": 41750,
+      "duration_ms": 280,
+      "text": "من",
+      "lexical": "من",
+      "confidence": 0.6734,
+      "words": [
+        {
+          "word": "من",
+          "offset_ms": 41750,
+          "duration_ms": 280,
+          "confidence": 0.6734
+        }
+      ]
+    },
+    {
+      "offset_ms": 43920,
+      "duration_ms": 240,
+      "text": "الجنه",
+      "lexical": "الجنه",
+      "confidence": 0.7648,
+      "words": [
+        {
+          "word": "الجنه",
+          "offset_ms": 43920,
+          "duration_ms": 240,
+          "confidence": 0.7648
+        }
+      ]
+    },
+    {
+      "offset_ms": 45680,
+      "duration_ms": 1440,
+      "text": "",
+      "lexical": "",
+      "confidence": 0.0,
+      "words": []
+    },
+    {
+      "offset_ms": 47120,
+      "duration_ms": 1920,
+      "text": "",
+      "lexical": "",
+      "confidence": 0.0,
+      "words": []
+    },
+    {
+      "offset_ms": 49040,
+      "duration_ms": 1000,
+      "text": "",
+      "lexical": "",
+      "confidence": 0.0,
+      "words": []
+    }
+  ]
+}

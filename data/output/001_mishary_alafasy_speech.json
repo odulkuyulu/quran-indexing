@@ -1,0 +1,592 @@
+{
+  "surah": 1,
+  "name_english": "Al-Fatihah",
+  "name_arabic": "الفاتحة",
+  "reciter": "mishary_alafasy",
+  "service": "Azure Speech Service",
+  "model": "ar-SA_ConversationalTranscription",
+  "region": "westeurope",
+  "language": "ar-SA",
+  "duration_ms": 51931,
+  "source_audio": "https://server8.mp3quran.net/afs/001.mp3",
+  "word_count": 68,
+  "phrases": [
+    {
+      "offset_ms": 70,
+      "duration_ms": 4400,
+      "text": "اعوذ بالله من الشيطان الرجيم",
+      "lexical": "اعوذ بالله من الشيطان الرجيم",
+      "confidence": 0.8489,
+      "words": [
+        {
+          "word": "اعوذ",
+          "offset_ms": 70,
+          "duration_ms": 760,
+          "confidence": 0.6673
+        },
+        {
+          "word": "بالله",
+          "offset_ms": 830,
+          "duration_ms": 1160,
+          "confidence": 0.986
+        },
+        {
+          "word": "من",
+          "offset_ms": 1990,
+          "duration_ms": 80,
+          "confidence": 0.957
+        },
+        {
+          "word": "الشيطان",
+          "offset_ms": 2070,
+          "duration_ms": 1200,
+          "confidence": 0.8197
+        },
+        {
+          "word": "الرجيم",
+          "offset_ms": 3270,
+          "duration_ms": 1200,
+          "confidence": 0.8143
+        }
+      ]
+    },
+    {
+      "offset_ms": 6240,
+      "duration_ms": 3160,
+      "text": "بسم الله الرحمن الرحيم",
+      "lexical": "بسم الله الرحمن الرحيم",
+      "confidence": 0.936,
+      "words": [
+        {
+          "word": "بسم",
+          "offset_ms": 6240,
+          "duration_ms": 440,
+          "confidence": 0.9887
+        },
+        {
+          "word": "الله",
+          "offset_ms": 6680,
+          "duration_ms": 400,
+          "confidence": 0.9181
+        },
+        {
+          "word": "الرحمن",
+          "offset_ms": 7080,
+          "duration_ms": 1160,
+          "confidence": 0.9641
+        },
+        {
+          "word": "الرحيم",
+          "offset_ms": 8440,
+          "duration_ms": 960,
+          "confidence": 0.8733
+        }
+      ]
+    },
+    {
+      "offset_ms": 10880,
+      "duration_ms": 4720,
+      "text": "الحمد لله رب العالمين",
+      "lexical": "الحمد لله رب العالمين",
+      "confidence": 0.9495,
+      "words": [
+        {
+          "word": "الحمد",
+          "offset_ms": 10880,
+          "duration_ms": 1560,
+          "confidence": 0.9688
+        },
+        {
+          "word": "لله",
+          "offset_ms": 12440,
+          "duration_ms": 280,
+          "confidence": 0.9639
+        },
+        {
+          "word": "رب",
+          "offset_ms": 12720,
+          "duration_ms": 80,
+          "confidence": 0.988
+        },
+        {
+          "word": "العالمين",
+          "offset_ms": 12800,
+          "duration_ms": 2800,
+          "confidence": 0.8771
+        }
+      ]
+    },
+    {
+      "offset_ms": 17800,
+      "duration_ms": 1920,
+      "text": "الرحمن الرحيم",
+      "lexical": "الرحمن الرحيم",
+      "confidence": 0.9514,
+      "words": [
+        {
+          "word": "الرحمن",
+          "offset_ms": 17800,
+          "duration_ms": 880,
+          "confidence": 0.9803
+        },
+        {
+          "word": "الرحيم",
+          "offset_ms": 18800,
+          "duration_ms": 920,
+          "confidence": 0.9225
+        }
+      ]
+    },
+    {
+      "offset_ms": 21280,
+      "duration_ms": 3400,
+      "text": "مالك يوم الدين",
+      "lexical": "مالك يوم الدين",
+      "confidence": 0.9063,
+      "words": [
+        {
+          "word": "مالك",
+          "offset_ms": 21280,
+          "duration_ms": 1680,
+          "confidence": 0.9897
+        },
+        {
+          "word": "يوم",
+          "offset_ms": 22960,
+          "duration_ms": 1520,
+          "confidence": 0.985
+        },
+        {
+          "word": "الدين",
+          "offset_ms": 24480,
+          "duration_ms": 200,
+          "confidence": 0.7442
+        }
+      ]
+    },
+    {
+      "offset_ms": 26920,
+      "duration_ms": 4040,
+      "text": "اياك نعبد واياك نستعين",
+      "lexical": "اياك نعبد واياك نستعين",
+      "confidence": 0.8857,
+      "words": [
+        {
+          "word": "اياك",
+          "offset_ms": 26920,
+          "duration_ms": 1280,
+          "confidence": 0.9782
+        },
+        {
+          "word": "نعبد",
+          "offset_ms": 28200,
+          "duration_ms": 160,
+          "confidence": 0.9874
+        },
+        {
+          "word": "واياك",
+          "offset_ms": 28360,
+          "duration_ms": 1400,
+          "confidence": 0.8974
+        },
+        {
+          "word": "نستعين",
+          "offset_ms": 29760,
+          "duration_ms": 1200,
+          "confidence": 0.68
+        }
+      ]
+    },
+    {
+      "offset_ms": 31310,
+      "duration_ms": 7330,
+      "text": "اهدنا الصراط المستقيم",
+      "lexical": "اهدنا الصراط المستقيم",
+      "confidence": 0.8663,
+      "words": [
+        {
+          "word": "اهدنا",
+          "offset_ms": 31310,
+          "duration_ms": 3080,
+          "confidence": 0.8446
+        },
+        {
+          "word": "الصراط",
+          "offset_ms": 34390,
+          "duration_ms": 880,
+          "confidence": 0.8436
+        },
+        {
+          "word": "المستقيم",
+          "offset_ms": 35270,
+          "duration_ms": 3370,
+          "confidence": 0.9106
+        }
+      ]
+    },
+    {
+      "offset_ms": 39230,
+      "duration_ms": 8360,
+      "text": "صراط الذين انعمت عليهم غير المغضوب عليهم ولا الض",
+      "lexical": "صراط الذين انعمت عليهم غير المغضوب عليهم ولا الض",
+      "confidence": 0.8947,
+      "words": [
+        {
+          "word": "صراط",
+          "offset_ms": 39230,
+          "duration_ms": 720,
+          "confidence": 0.8378
+        },
+        {
+          "word": "الذين",
+          "offset_ms": 39950,
+          "duration_ms": 1000,
+          "confidence": 0.9881
+        },
+        {
+          "word": "انعمت",
+          "offset_ms": 40950,
+          "duration_ms": 880,
+          "confidence": 0.8145
+        },
+        {
+          "word": "عليهم",
+          "offset_ms": 41830,
+          "duration_ms": 1200,
+          "confidence": 0.989
+        },
+        {
+          "word": "غير",
+          "offset_ms": 43030,
+          "duration_ms": 440,
+          "confidence": 0.8901
+        },
+        {
+          "word": "المغضوب",
+          "offset_ms": 43470,
+          "duration_ms": 1120,
+          "confidence": 0.9579
+        },
+        {
+          "word": "عليهم",
+          "offset_ms": 44590,
+          "duration_ms": 1000,
+          "confidence": 0.9889
+        },
+        {
+          "word": "ولا",
+          "offset_ms": 45590,
+          "duration_ms": 1880,
+          "confidence": 0.9843
+        },
+        {
+          "word": "الض",
+          "offset_ms": 47470,
+          "duration_ms": 120,
+          "confidence": 0.6016
+        }
+      ]
+    },
+    {
+      "offset_ms": 49280,
+      "duration_ms": 2640,
+      "text": "",
+      "lexical": "",
+      "confidence": 0.0,
+      "words": []
+    },
+    {
+      "offset_ms": 70,
+      "duration_ms": 4400,
+      "text": "اعوذ بالله من الشيطان الرجيم",
+      "lexical": "اعوذ بالله من الشيطان الرجيم",
+      "confidence": 0.9046,
+      "words": [
+        {
+          "word": "اعوذ",
+          "offset_ms": 70,
+          "duration_ms": 760,
+          "confidence": 0.7557
+        },
+        {
+          "word": "بالله",
+          "offset_ms": 830,
+          "duration_ms": 1160,
+          "confidence": 0.9842
+        },
+        {
+          "word": "من",
+          "offset_ms": 1990,
+          "duration_ms": 80,
+          "confidence": 0.9655
+        },
+        {
+          "word": "الشيطان",
+          "offset_ms": 2070,
+          "duration_ms": 1200,
+          "confidence": 0.8505
+        },
+        {
+          "word": "الرجيم",
+          "offset_ms": 3270,
+          "duration_ms": 1200,
+          "confidence": 0.967
+        }
+      ]
+    },
+    {
+      "offset_ms": 6160,
+      "duration_ms": 3280,
+      "text": "بسم الله الرحمن الرحيم",
+      "lexical": "بسم الله الرحمن الرحيم",
+      "confidence": 0.9079,
+      "words": [
+        {
+          "word": "بسم",
+          "offset_ms": 6160,
+          "duration_ms": 560,
+          "confidence": 0.8829
+        },
+        {
+          "word": "الله",
+          "offset_ms": 6720,
+          "duration_ms": 400,
+          "confidence": 0.871
+        },
+        {
+          "word": "الرحمن",
+          "offset_ms": 7120,
+          "duration_ms": 1160,
+          "confidence": 0.9623
+        },
+        {
+          "word": "الرحيم",
+          "offset_ms": 8480,
+          "duration_ms": 960,
+          "confidence": 0.9156
+        }
+      ]
+    },
+    {
+      "offset_ms": 10880,
+      "duration_ms": 4720,
+      "text": "الحمد لله رب العالمين",
+      "lexical": "الحمد لله رب العالمين",
+      "confidence": 0.9673,
+      "words": [
+        {
+          "word": "الحمد",
+          "offset_ms": 10880,
+          "duration_ms": 1560,
+          "confidence": 0.9679
+        },
+        {
+          "word": "لله",
+          "offset_ms": 12440,
+          "duration_ms": 1680,
+          "confidence": 0.9653
+        },
+        {
+          "word": "رب",
+          "offset_ms": 14120,
+          "duration_ms": 520,
+          "confidence": 0.9876
+        },
+        {
+          "word": "العالمين",
+          "offset_ms": 14640,
+          "duration_ms": 960,
+          "confidence": 0.9482
+        }
+      ]
+    },
+    {
+      "offset_ms": 17800,
+      "duration_ms": 1920,
+      "text": "الرحمن الرحيم",
+      "lexical": "الرحمن الرحيم",
+      "confidence": 0.9328,
+      "words": [
+        {
+          "word": "الرحمن",
+          "offset_ms": 17800,
+          "duration_ms": 880,
+          "confidence": 0.9806
+        },
+        {
+          "word": "الرحيم",
+          "offset_ms": 18840,
+          "duration_ms": 880,
+          "confidence": 0.885
+        }
+      ]
+    },
+    {
+      "offset_ms": 21280,
+      "duration_ms": 3720,
+      "text": "مالك يوم الدين",
+      "lexical": "مالك يوم الدين",
+      "confidence": 0.8896,
+      "words": [
+        {
+          "word": "مالك",
+          "offset_ms": 21280,
+          "duration_ms": 1720,
+          "confidence": 0.9896
+        },
+        {
+          "word": "يوم",
+          "offset_ms": 23000,
+          "duration_ms": 1680,
+          "confidence": 0.9871
+        },
+        {
+          "word": "الدين",
+          "offset_ms": 24680,
+          "duration_ms": 320,
+          "confidence": 0.6921
+        }
+      ]
+    },
+    {
+      "offset_ms": 26960,
+      "duration_ms": 3680,
+      "text": "اياك نعبد واياك نستعين",
+      "lexical": "اياك نعبد واياك نستعين",
+      "confidence": 0.8601,
+      "words": [
+        {
+          "word": "اياك",
+          "offset_ms": 26960,
+          "duration_ms": 880,
+          "confidence": 0.9535
+        },
+        {
+          "word": "نعبد",
+          "offset_ms": 27840,
+          "duration_ms": 480,
+          "confidence": 0.845
+        },
+        {
+          "word": "واياك",
+          "offset_ms": 28320,
+          "duration_ms": 1440,
+          "confidence": 0.8464
+        },
+        {
+          "word": "نستعين",
+          "offset_ms": 29760,
+          "duration_ms": 880,
+          "confidence": 0.7953
+        }
+      ]
+    },
+    {
+      "offset_ms": 30830,
+      "duration_ms": 6320,
+      "text": "اهدنا الصراط المستقيم",
+      "lexical": "اهدنا الصراط المستقيم",
+      "confidence": 0.8328,
+      "words": [
+        {
+          "word": "اهدنا",
+          "offset_ms": 30830,
+          "duration_ms": 2920,
+          "confidence": 0.7782
+        },
+        {
+          "word": "الصراط",
+          "offset_ms": 33750,
+          "duration_ms": 1520,
+          "confidence": 0.8845
+        },
+        {
+          "word": "المستقيم",
+          "offset_ms": 35270,
+          "duration_ms": 1880,
+          "confidence": 0.8357
+        }
+      ]
+    },
+    {
+      "offset_ms": 39160,
+      "duration_ms": 8560,
+      "text": "صراط الذين انعمت عليهم غير المغضوب عليهم ولا",
+      "lexical": "صراط الذين انعمت عليهم غير المغضوب عليهم ولا",
+      "confidence": 0.9579,
+      "words": [
+        {
+          "word": "صراط",
+          "offset_ms": 39160,
+          "duration_ms": 680,
+          "confidence": 0.8458
+        },
+        {
+          "word": "الذين",
+          "offset_ms": 39840,
+          "duration_ms": 960,
+          "confidence": 0.9641
+        },
+        {
+          "word": "انعمت",
+          "offset_ms": 40800,
+          "duration_ms": 960,
+          "confidence": 0.9161
+        },
+        {
+          "word": "عليهم",
+          "offset_ms": 41760,
+          "duration_ms": 1120,
+          "confidence": 0.9892
+        },
+        {
+          "word": "غير",
+          "offset_ms": 42920,
+          "duration_ms": 600,
+          "confidence": 0.9865
+        },
+        {
+          "word": "المغضوب",
+          "offset_ms": 43520,
+          "duration_ms": 1000,
+          "confidence": 0.9895
+        },
+        {
+          "word": "عليهم",
+          "offset_ms": 44520,
+          "duration_ms": 1000,
+          "confidence": 0.9879
+        },
+        {
+          "word": "ولا",
+          "offset_ms": 45520,
+          "duration_ms": 2200,
+          "confidence": 0.9839
+        }
+      ]
+    },
+    {
+      "offset_ms": 47800,
+      "duration_ms": 920,
+      "text": "",
+      "lexical": "",
+      "confidence": 0.0,
+      "words": []
+    },
+    {
+      "offset_ms": 48830,
+      "duration_ms": 3040,
+      "text": "",
+      "lexical": "الظالمين",
+      "confidence": 0.4151,
+      "words": [
+        {
+          "word": "الظالمين",
+          "offset_ms": 48830,
+          "duration_ms": 3040,
+          "confidence": 0.4151
+        }
+      ]
+    }
+  ]
+}
