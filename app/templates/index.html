@@ -402,6 +402,48 @@
       background: #8b5cf618; color: #a78bfa; border: 1px solid #8b5cf635;
     }
 
+    /* ── speech transcription progress bar ── */
+    .tx-progress-wrap {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid #0f172a;
+      background: #070d1a;
+    }
+    .tx-progress-label {
+      font-size: 0.65rem; font-weight: 700; letter-spacing: .05em;
+      text-transform: uppercase; color: #10b981; margin-bottom: 0.45rem;
+      display: flex; align-items: center; gap: 0.4rem;
+    }
+    .tx-progress-label::before { content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #10b981; animation: txPulse 1.2s ease-in-out infinite; }
+    @keyframes txPulse { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:0.4; transform:scale(0.7); } }
+    .tx-bar-bg {
+      height: 7px; background: #1e293b; border-radius: 4px;
+      overflow: hidden; margin-bottom: 0.55rem; position: relative;
+    }
+    .tx-bar-fill {
+      height: 100%; width: 0;
+      background: linear-gradient(90deg, #059669, #10b981, #34d399);
+      border-radius: 4px;
+      transition: width 0.35s ease;
+      position: relative;
+    }
+    .tx-bar-fill::after {
+      content: ''; position: absolute; right: 0; top: 0; bottom: 0;
+      width: 24px;
+      background: linear-gradient(90deg, transparent, rgba(52,211,153,0.5));
+      animation: txShimmer 1s ease-in-out infinite;
+    }
+    @keyframes txShimmer { 0%,100% { opacity:1; } 50% { opacity:0.2; } }
+    .tx-stats {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.35rem;
+    }
+    .tx-stat {
+      background: #1e293b; border-radius: 5px;
+      padding: 0.28rem 0.45rem;
+      text-align: center;
+    }
+    .tx-stat-key { font-size: 0.58rem; color: #475569; margin-bottom: 0.1rem; text-transform: uppercase; letter-spacing: .04em; }
+    .tx-stat-val { font-size: 0.8rem; font-weight: 700; color: #34d399; font-variant-numeric: tabular-nums; }
+
     /* ── responsive ── */
     @media (max-width: 700px) {
       .app { grid-template-columns: 1fr; }
@@ -770,8 +812,22 @@
       content:  "Submits audio to Azure AI Content Understanding — semantic fields extracted as structured JSON",
     }[currentPipeline];
 
+    const speechProgressPanel = `
+      <div class="tx-progress-wrap" id="txProgressWrap" style="display:none">
+        <div class="tx-progress-label" id="txProgressLabel">Transcribing…</div>
+        <div class="tx-bar-bg"><div class="tx-bar-fill" id="txBarFill"></div></div>
+        <div class="tx-stats">
+          <div class="tx-stat"><div class="tx-stat-key">Audio</div><div class="tx-stat-val" id="txStatAudio">0%</div></div>
+          <div class="tx-stat"><div class="tx-stat-key">Phrases</div><div class="tx-stat-val" id="txStatPhrases">0</div></div>
+          <div class="tx-stat"><div class="tx-stat-key">Words</div><div class="tx-stat-val" id="txStatWords">0</div></div>
+          <div class="tx-stat"><div class="tx-stat-key">Avg Conf</div><div class="tx-stat-val" id="txStatConf">—</div></div>
+        </div>
+      </div>`;
+
     const leftContent = currentPipeline === "content"
       ? `<div class="karaoke-scroll" id="simResultPanel" style="min-height:200px;padding:0"></div>`
+      : currentPipeline === "speech"
+      ? `${speechProgressPanel}<div class="karaoke-scroll" id="simAyahList">${slots}</div>`
       : `<div class="karaoke-scroll" id="simAyahList">${slots}</div>`;
 
     contentArea.innerHTML = `
@@ -970,7 +1026,24 @@
     const region   = speechData?.region || "eastus";
     const wordCnt  = speechData?.word_count || 0;
 
-    // Reset ayah rows
+    // Reset ayah rows + progress bar
+    const txWrap   = document.getElementById("txProgressWrap");
+    const txFill   = document.getElementById("txBarFill");
+    const txLabel  = document.getElementById("txProgressLabel");
+    const txAudio  = document.getElementById("txStatAudio");
+    const txPhrases= document.getElementById("txStatPhrases");
+    const txWords  = document.getElementById("txStatWords");
+    const txConf   = document.getElementById("txStatConf");
+    if (txWrap)  { txWrap.style.display = "none"; }
+    if (txFill)  txFill.style.width = "0";
+    if (txAudio) txAudio.textContent = "0%";
+    if (txPhrases) txPhrases.textContent = "0";
+    if (txWords)   txWords.textContent = "0";
+    if (txConf)    txConf.textContent = "—";
+    let txRevealedCount = 0;
+    let txTotalWords = 0;
+    let txConfSum = 0;
+
     ayahs.forEach(a => {
       const row  = document.getElementById(`simrow-${a.ayah}`);
       const txt  = document.getElementById(`simtext-${a.ayah}`);
@@ -1001,6 +1074,13 @@
       if (bar)   { bar.style.width = `${conf*100}%`; bar.style.background = "#10b981"; }
       log(`RECOGNIZED  ayah ${String(a.ayah).padStart(2)}  ${(a.start_ms/1000).toFixed(3)}s→${(a.end_ms/1000).toFixed(3)}s  conf:${(conf*100).toFixed(1)}%  lang:ar-SA`, "sim-log-ok");
       if (status) status.textContent = `Recognized ayah ${a.ayah} of ${ayahs.length}…`;
+      // Update progress bar stats
+      txRevealedCount++;
+      txTotalWords += (a.speech_word_count || 0);
+      txConfSum    += conf;
+      if (txPhrases) txPhrases.textContent = `${txRevealedCount} / ${ayahs.length}`;
+      if (txWords)   txWords.textContent   = txTotalWords || "—";
+      if (txConf)    txConf.textContent    = `${((txConfSum / txRevealedCount) * 100).toFixed(1)}%`;
     }
 
     let t = 0;
@@ -1026,13 +1106,26 @@
       log("streaming audio — real-time recognition started…", "sim-log-head");
       btn.textContent = "⏸ Recognizing…";
       if (status) status.textContent = "Streaming audio to Azure Speech — phrases recognized in real-time…";
+      // Show the transcription progress bar
+      if (txWrap) { txWrap.style.display = ""; }
+      if (txPhrases) txPhrases.textContent = `0 / ${ayahs.length}`;
       if (player) player.play().catch(() => {});
     }, after(350));
 
     if (player) {
       const revealed = new Set();
+      const totalDurMs = currentSurah.audio_duration_ms || 0;
       const onTime = () => {
         const ms = player.currentTime * 1000;
+        // Update the overall audio progress bar
+        if (txFill && totalDurMs > 0) {
+          const pct = Math.min(100, (ms / totalDurMs) * 100);
+          txFill.style.width = `${pct.toFixed(1)}%`;
+        }
+        if (txAudio && totalDurMs > 0) {
+          txAudio.textContent = `${Math.min(100, Math.round((ms / totalDurMs) * 100))}%`;
+        }
+        if (txLabel) txLabel.textContent = "Transcribing…";
         for (const a of ayahs) {
           if (!revealed.has(a.ayah) && ms >= a.start_ms) {
             revealed.add(a.ayah);
@@ -1043,6 +1136,11 @@
       const onEnd = () => {
         player.removeEventListener("timeupdate", onTime);
         player.removeEventListener("ended",      onEnd);
+        // Complete the progress bar
+        if (txFill)   txFill.style.width = "100%";
+        if (txAudio)  txAudio.textContent = "100%";
+        if (txLabel)  { txLabel.textContent = "✓ Transcription complete"; txLabel.style.color = "#4ade80"; }
+        if (txFill)   { txFill.style.background = "linear-gradient(90deg,#16a34a,#4ade80)"; txFill.style.animation = "none"; }
         log("─".repeat(50), "sim-log-dim");
         setTimeout(() => log(`✓  ${ayahs.length} phrases recognized`, "sim-log-head"), 200);
         setTimeout(() => log(`   language detected : ar-SA (99.8%)`, "sim-log-dim"), 400);

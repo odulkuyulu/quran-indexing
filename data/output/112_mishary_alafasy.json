@@ -14,11 +14,11 @@
       "reciter": "mishary_alafasy",
       "qiraa": "Hafs",
       "audio_url": "https://server8.mp3quran.net/afs/112.mp3",
-      "start_ms": 0,
-      "end_ms": 7610,
+      "start_ms": 7120,
+      "end_ms": 10260,
       "text_uthmani": " قُلْ هُوَ ٱللَّهُ أَحَدٌ",
-      "confidence": 0.5315333333333333,
-      "needs_review": true
+      "confidence": 0.9857,
+      "needs_review": false
     },
     {
       "surah": 112,
@@ -26,11 +26,11 @@
       "reciter": "mishary_alafasy",
       "qiraa": "Hafs",
       "audio_url": "https://server8.mp3quran.net/afs/112.mp3",
-      "start_ms": 7610,
-      "end_ms": 10303,
+      "start_ms": 10260,
+      "end_ms": 12520,
       "text_uthmani": "ٱللَّهُ ٱلصَّمَدُ",
-      "confidence": 0.63525,
-      "needs_review": true
+      "confidence": 0.8964,
+      "needs_review": false
     },
     {
       "surah": 112,
@@ -38,11 +38,11 @@
       "reciter": "mishary_alafasy",
       "qiraa": "Hafs",
       "audio_url": "https://server8.mp3quran.net/afs/112.mp3",
-      "start_ms": 10303,
-      "end_ms": 14719,
+      "start_ms": 12520,
+      "end_ms": 15740,
       "text_uthmani": "لَمْ يَلِدْ وَلَمْ يُولَدْ",
-      "confidence": 0.64925,
-      "needs_review": true
+      "confidence": 0.9725,
+      "needs_review": false
     },
     {
       "surah": 112,
@@ -50,11 +50,11 @@
       "reciter": "mishary_alafasy",
       "qiraa": "Hafs",
       "audio_url": "https://server8.mp3quran.net/afs/112.mp3",
-      "start_ms": 14719,
+      "start_ms": 15740,
       "end_ms": 21707,
       "text_uthmani": "وَلَمْ يَكُن لَّهُۥ كُفُوًا أَحَدٌۢ",
-      "confidence": 0.6446999999999999,
-      "needs_review": true
+      "confidence": 0.8948,
+      "needs_review": false
     }
   ],
   "metadata": {

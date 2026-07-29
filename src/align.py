@@ -76,6 +76,10 @@ def get_device() -> str:
     return "cpu"
 
 
+# Normalized Basmala words (no diacritics/tashkeel)
+BASMALA_WORDS_NORMALIZED = ["بسم", "الله", "الرحمن", "الرحيم"]
+
+
 def normalize_arabic_for_alignment(text: str) -> str:
     """
     Normalize Arabic text for alignment comparison.
@@ -103,6 +107,52 @@ def tokenize_arabic(text: str) -> List[str]:
     words = text.split()
     # Filter empty strings
     return [w.strip() for w in words if w.strip()]
+
+
+def strip_leading_basmala(
+    word_timings: List[WordTiming],
+    surah: int
+) -> Tuple[List[WordTiming], Optional[int]]:
+    """
+    Strip the leading Basmala from word_timings for surahs where it is not
+    an ayah.
+
+    In standard Quran recitations every surah except Surah 9 (At-Tawbah)
+    begins with the Basmala (بسم الله الرحمن الرحيم).  For Surah 1
+    (Al-Fatiha) that Basmala IS ayah 1, so we must leave it intact.
+    For all other surahs it precedes the canonical text and must be
+    discarded before forced-alignment so that ayah timing is not offset.
+
+    Returns:
+        (word_timings_without_basmala, basmala_end_ms)
+        If no Basmala is detected the original list is returned with None.
+    """
+    # Surah 1: Basmala is ayah 1 — keep it.
+    # Surah 9: no Basmala by convention.
+    if surah in (1, 9):
+        return word_timings, None
+
+    n = len(BASMALA_WORDS_NORMALIZED)
+    if len(word_timings) < n:
+        return word_timings, None
+
+    first_n = [
+        normalize_arabic_for_alignment(wt.word) for wt in word_timings[:n]
+    ]
+    if first_n == BASMALA_WORDS_NORMALIZED:
+        basmala_end_ms = word_timings[n - 1].end_ms
+        console.print(
+            f"[dim]Basmala detected — ends at {basmala_end_ms} ms, "
+            f"stripping {n} words before alignment[/dim]"
+        )
+        return word_timings[n:], basmala_end_ms
+
+    console.print(
+        "[yellow]Warning:[/yellow] Basmala not found at start of word timings "
+        f"(first word: {normalize_arabic_for_alignment(word_timings[0].word) if word_timings else 'none'}). "
+        "Alignment may be offset."
+    )
+    return word_timings, None
 
 
 class WhisperXAligner:
@@ -398,7 +448,16 @@ def run_forced_alignment(
     word_timings = aligner.extract_word_timings(whisperx_result)
     
     console.print(f"[dim]Extracted {len(word_timings)} word timings[/dim]")
-    
+
+    # Strip leading Basmala for surahs where it is not an ayah.
+    # Without this the first 4 Basmala words are consumed against ayah 1's
+    # word budget, offsetting every subsequent ayah boundary.
+    word_timings, basmala_end_ms = strip_leading_basmala(
+        word_timings, surah_text.surah
+    )
+    if basmala_end_ms is not None:
+        console.print(f"[dim]{len(word_timings)} word timings remain after Basmala strip[/dim]")
+
     # Map to ayahs
     ayah_timings = align_words_to_ayahs(
         word_timings,

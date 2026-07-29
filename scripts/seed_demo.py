@@ -35,11 +35,24 @@ console = Console()
 # ---------------------------------------------------------------------------
 
 QURANCOM_BASE = "https://api.quran.com/api/v4"
-# Recitation ID 7 = Mishary Alafasy (Hafs an Asim) on Quran.com
-RECITATION_ID = 7
 
-RECITER_LABELS = {
-    "mishary_alafasy": "Mishary Rashid Alafasy",
+# Per-reciter configuration.
+# qurancom_id: Quran.com recitation ID (None = not available there)
+# audio_pattern: fallback direct URL pattern when qurancom_id is None
+# qiraa: recitation style label
+RECITER_CONFIGS: dict[str, dict] = {
+    "mishary_alafasy": {
+        "display": "Mishary Rashid Alafasy",
+        "qurancom_id": 7,
+        "audio_pattern": "https://download.quranicaudio.com/quran/mishaari_raashid_al-3afaasee/{surah:03d}.mp3",
+        "qiraa": "Hafs",
+    },
+    "khalifa_al_kuwari": {
+        "display": "Khalifa Al-Kuwari",
+        "qurancom_id": None,  # not in Quran.com recitations list
+        "audio_pattern": "https://download.quranicaudio.com/quran/khalefa_al_kuwari/{surah:03d}.mp3",
+        "qiraa": "Hafs",
+    },
 }
 
 # Known short surahs good for demo (surah_num: approx_duration_ms)
@@ -89,37 +102,49 @@ def fetch_verses(surah: int) -> list:
     ]
 
 
-def fetch_audio_url(surah: int) -> str:
-    """Get full-surah audio URL from Quran.com recitations API."""
-    try:
-        data = qurancom_get(f"/chapter_recitations/{RECITATION_ID}/{surah}")
-        return data["audio_file"]["audio_url"]
-    except Exception:
-        # Fallback to known URL pattern
-        return (
-            f"https://download.quranicaudio.com/quran/"
-            f"mishaari_raashid_al-3afaasee/{surah:03d}.mp3"
-        )
+def fetch_audio_url(surah: int, reciter: str = "mishary_alafasy") -> str:
+    """Get full-surah audio URL for the given reciter."""
+    cfg = RECITER_CONFIGS.get(reciter, RECITER_CONFIGS["mishary_alafasy"])
+    recitation_id = cfg["qurancom_id"]
+
+    if recitation_id is not None:
+        # Try Quran.com API first
+        try:
+            data = qurancom_get(f"/chapter_recitations/{recitation_id}/{surah}")
+            return data["audio_file"]["audio_url"]
+        except Exception:
+            pass  # fall through to direct pattern
+
+    # Use direct audio pattern
+    return cfg["audio_pattern"].format(surah=surah)
 
 
 # ---------------------------------------------------------------------------
 # Audio duration (ffprobe)
 # ---------------------------------------------------------------------------
 
-# Known durations (ms) for Mishary Alafasy (Hafs) — used when ffprobe unavailable.
+# Known durations (ms) per reciter — used when ffprobe unavailable.
 # Source: QuranicAudio.com measurements.
-KNOWN_DURATIONS_MS = {
-    1:   46_000,   # Al-Fatiha      ~46s
-    2: 5580_000,   # Al-Baqara    ~93min
-    67:  197_000,  # Al-Mulk       ~3m17s
-    78:  177_000,  # An-Naba       ~2m57s
-    112:  17_000,  # Al-Ikhlas      ~17s
-    113:  15_000,  # Al-Falaq       ~15s
-    114:  21_000,  # An-Nas         ~21s
+KNOWN_DURATIONS_MS: dict[str, dict[int, int]] = {
+    "mishary_alafasy": {
+        1:   46_000,   # Al-Fatiha      ~46s
+        2: 5580_000,   # Al-Baqara    ~93min
+        67:  197_000,  # Al-Mulk       ~3m17s
+        78:  177_000,  # An-Naba       ~2m57s
+        112:  17_000,  # Al-Ikhlas      ~17s
+        113:  15_000,  # Al-Falaq       ~15s
+        114:  21_000,  # An-Nas         ~21s
+    },
+    "khalifa_al_kuwari": {
+        1:   55_000,   # Al-Fatiha      ~55s
+        112:  20_000,  # Al-Ikhlas      ~20s
+        113:  19_000,  # Al-Falaq       ~19s
+        114:  25_000,  # An-Nas         ~25s
+    },
 }
 
 
-def get_duration_ms(surah: int, mp3_path: Path) -> int:
+def get_duration_ms(surah: int, mp3_path: Path, reciter: str = "mishary_alafasy") -> int:
     """Return duration in ms. Tries ffprobe first, then known table, then 0."""
     # Try ffprobe
     try:
@@ -147,8 +172,9 @@ def get_duration_ms(surah: int, mp3_path: Path) -> int:
         pass
 
     # Fall back to known table
-    if surah in KNOWN_DURATIONS_MS:
-        dur = KNOWN_DURATIONS_MS[surah]
+    reciter_durations = KNOWN_DURATIONS_MS.get(reciter, KNOWN_DURATIONS_MS["mishary_alafasy"])
+    if surah in reciter_durations:
+        dur = reciter_durations[surah]
         console.print(f"  [dim]Using known duration fallback: {dur / 1000:.0f}s[/dim]")
         return dur
 
@@ -207,14 +233,17 @@ def build_index(
     duration_ms: int,
     reciter: str,
 ) -> dict:
+    cfg = RECITER_CONFIGS.get(reciter, RECITER_CONFIGS["mishary_alafasy"])
+    qiraa = cfg["qiraa"]
+    display_name = cfg["display"]
     spans = distribute_timestamps(meta["ayah_count"], duration_ms)
     ayahs = []
     for v, (start, end) in zip(verses, spans):
         ayahs.append({
             "surah": meta["surah"],
             "ayah": v["ayah"],
-            "reciter": reciter,
-            "qiraa": "Hafs",
+            "reciter": display_name,
+            "qiraa": qiraa,
             "audio_url": audio_url,
             "start_ms": start,
             "end_ms": end,
@@ -227,8 +256,8 @@ def build_index(
         "surah": meta["surah"],
         "name_arabic": meta["name_arabic"],
         "name_english": meta["name_english"],
-        "reciter": reciter,
-        "qiraa": "Hafs",
+        "reciter": display_name,
+        "qiraa": qiraa,
         "source_audio_url": audio_url,
         "audio_duration_ms": duration_ms,
         "ayah_count": meta["ayah_count"],
@@ -278,10 +307,10 @@ def seed_surah(
         return False
 
     # 2. Audio
-    audio_url = fetch_audio_url(surah)
+    audio_url = fetch_audio_url(surah, reciter)
     mp3_dest = audio_dir / "raw" / f"{surah:03d}_{reciter}.mp3"
     downloaded = download_mp3(audio_url, mp3_dest)
-    duration_ms = get_duration_ms(surah, mp3_dest) if downloaded else KNOWN_DURATIONS_MS.get(surah, 0)
+    duration_ms = get_duration_ms(surah, mp3_dest, reciter) if downloaded else KNOWN_DURATIONS_MS.get(reciter, {}).get(surah, 0)
 
     if duration_ms:
         console.print(f"  Duration: {duration_ms / 1000:.1f}s")
@@ -306,9 +335,10 @@ def main():
         default=DEFAULT_SURAHS,
         help="Surah numbers to seed (default: 1 112 114)",
     )
+    available = ", ".join(RECITER_CONFIGS.keys())
     parser.add_argument(
         "--reciter", default="mishary_alafasy",
-        help="Reciter slug used in filenames",
+        help=f"Reciter slug. Available: {available}",
     )
     parser.add_argument(
         "--audio-dir", default="./data/audio", type=Path,
@@ -318,10 +348,11 @@ def main():
     )
     args = parser.parse_args()
 
+    display = RECITER_CONFIGS.get(args.reciter, {}).get("display", args.reciter)
     console.print(Panel(
         f"[bold cyan]Quran Demo Seeder[/bold cyan]\n\n"
         f"Surahs : {args.surahs}\n"
-        f"Reciter: {args.reciter}\n"
+        f"Reciter: {display} ({args.reciter})\n"
         f"Output : {args.output_dir}\n\n"
         "[yellow]NOTE: timestamps are ESTIMATED (even distribution).\n"
         "Run full pipeline for real forced-alignment.[/yellow]",
