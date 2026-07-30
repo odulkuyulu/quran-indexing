@@ -1021,10 +1021,29 @@
     }
 
     const ayahs    = (speechData && speechData.ayahs) || currentSurah.ayahs || [];
+    const preamble = (speechData && speechData.preamble) || [];
     const isReal   = speechData?.real === true;
     const model    = speechData?.model || "ar-SA_ConversationalTranscription";
     const region   = speechData?.region || "eastus";
     const wordCnt  = speechData?.word_count || 0;
+
+    // Inject preamble rows (e.g. Ta'awwudh) before the ayah rows
+    const simList = document.getElementById("simAyahList");
+    preamble.forEach((p, i) => {
+      const id = `preamble-${i}`;
+      if (!document.getElementById(`simrow-${id}`)) {
+        const rowHtml = `
+          <div class="sim-ayah-row" id="simrow-${id}" style="border-left-color:#f59e0b33">
+            <span class="karaoke-num" style="color:#f59e0b">🔊</span>
+            <div class="karaoke-body" style="width:100%">
+              <span class="karaoke-text" id="simtext-${id}" dir="rtl"></span>
+              <span style="font-size:0.68rem;color:#475569;font-variant-numeric:tabular-nums" id="simmeta-${id}"></span>
+              <div class="conf-bar-wrap"><div class="conf-bar" id="simbar-${id}"></div></div>
+            </div>
+          </div>`;
+        if (simList) simList.insertAdjacentHTML("afterbegin", rowHtml);
+      }
+    });
 
     // Reset ayah rows + progress bar
     const txWrap   = document.getElementById("txProgressWrap");
@@ -1044,6 +1063,19 @@
     let txTotalWords = 0;
     let txConfSum = 0;
 
+    // Reset preamble rows
+    preamble.forEach((p, i) => {
+      const id = `preamble-${i}`;
+      const row  = document.getElementById(`simrow-${id}`);
+      const txt  = document.getElementById(`simtext-${id}`);
+      const meta = document.getElementById(`simmeta-${id}`);
+      const bar  = document.getElementById(`simbar-${id}`);
+      if (row)  row.classList.remove("revealed");
+      if (txt)  txt.textContent = "";
+      if (meta) meta.innerHTML = "";
+      if (bar)  bar.style.width = "0";
+    });
+
     ayahs.forEach(a => {
       const row  = document.getElementById(`simrow-${a.ayah}`);
       const txt  = document.getElementById(`simtext-${a.ayah}`);
@@ -1054,6 +1086,27 @@
       if (meta) meta.innerHTML = "";
       if (bar)  bar.style.width = "0";
     });
+
+    function revealPreamble(p, idx) {
+      const id = `preamble-${idx}`;
+      const conf = p.speech_confidence ?? 0;
+      const dur  = p.end_ms - p.start_ms;
+      const wc   = p.speech_word_count || 0;
+      const txt  = p.speech_text || "";
+      const row  = document.getElementById(`simrow-${id}`);
+      const txtEl= document.getElementById(`simtext-${id}`);
+      const meta = document.getElementById(`simmeta-${id}`);
+      const bar  = document.getElementById(`simbar-${id}`);
+      if (row)   { row.classList.add("revealed"); row.style.borderLeftColor = "#f59e0b55"; row.scrollIntoView({ behavior: "smooth", block: "nearest" }); }
+      if (txtEl) txtEl.textContent = txt;
+      if (meta)  meta.innerHTML = `<span class="az-badge" style="background:#f59e0b22;color:#f59e0b;border:1px solid #f59e0b44;font-size:0.6rem;padding:0.1rem 0.35rem;border-radius:3px">🔊 PRE-AYAH</span>
+        <span style="font-size:0.65rem;color:#475569">
+          ${(p.start_ms/1000).toFixed(3)}s–${(p.end_ms/1000).toFixed(3)}s · ${dur}ms
+          · lang <b style="color:#34d399">ar-SA</b> · conf <b style="color:#4ade80">${(conf*100).toFixed(1)}%</b>${wc ? ` · ${wc} words` : ""}
+        </span>`;
+      if (bar)   { bar.style.width = `${conf*100}%`; bar.style.background = "#f59e0b"; }
+      log(`RECOGNIZED  pre-ayah  ${(p.start_ms/1000).toFixed(3)}s→${(p.end_ms/1000).toFixed(3)}s  conf:${(conf*100).toFixed(1)}%  lang:ar-SA  "${txt}"`, "sim-log-ok");
+    }
 
     function revealPhrase(a) {
       const conf = a.speech_confidence ?? a.confidence ?? 0;
@@ -1114,6 +1167,7 @@
 
     if (player) {
       const revealed = new Set();
+      const revealedPreamble = new Set();
       const totalDurMs = currentSurah.audio_duration_ms || 0;
       const onTime = () => {
         const ms = player.currentTime * 1000;
@@ -1126,6 +1180,13 @@
           txAudio.textContent = `${Math.min(100, Math.round((ms / totalDurMs) * 100))}%`;
         }
         if (txLabel) txLabel.textContent = "Transcribing…";
+        // Reveal preamble phrases (e.g. Ta'awwudh)
+        preamble.forEach((p, i) => {
+          if (!revealedPreamble.has(i) && ms >= p.start_ms) {
+            revealedPreamble.add(i);
+            revealPreamble(p, i);
+          }
+        });
         for (const a of ayahs) {
           if (!revealed.has(a.ayah) && ms >= a.start_ms) {
             revealed.add(a.ayah);

@@ -223,6 +223,36 @@ def demo_speech(surah_num: int):
         except Exception:
             pass  # fall through to synthetic
 
+    # Collect pre-ayah phrases (e.g. Ta'awwudh) that Speech recognised
+    # but fall entirely before the first ayah's start_ms.
+    preamble: list = []
+    first_start = ayahs[0]["start_ms"] if ayahs else 0
+    if real and phrases:
+        for p in phrases:
+            p_end = p["offset_ms"] + p["duration_ms"]
+            if p_end <= first_start:
+                text = p.get("text", "")
+                conf = p.get("confidence", 0)
+                # Deduplicate by matching text (same phrase recognized twice)
+                dup = next(
+                    (e for e in preamble if e["speech_text"] == text),
+                    None,
+                )
+                if dup:
+                    if conf > dup["speech_confidence"]:
+                        dup["start_ms"] = p["offset_ms"]
+                        dup["end_ms"] = p_end
+                        dup["speech_confidence"] = conf
+                        dup["speech_word_count"] = len(p.get("words", []))
+                else:
+                    preamble.append({
+                        "start_ms":          p["offset_ms"],
+                        "end_ms":            p_end,
+                        "speech_text":       text,
+                        "speech_confidence": conf,
+                        "speech_word_count": len(p.get("words", [])),
+                    })
+
     # Enrich alignment ayahs with speech phrase data
     enriched_ayahs = []
     for a in ayahs:
@@ -255,6 +285,7 @@ def demo_speech(surah_num: int):
         "surah":            src.get("surah"),
         "name_english":     src.get("name_english"),
         "audio_duration_ms": src.get("audio_duration_ms"),
+        "preamble":         preamble,
         "ayahs":            enriched_ayahs,
     })
 
